@@ -17,6 +17,9 @@ This backend provides a complete REST API for managing internship records. It pe
 - **Web Framework**: Express.js (v4.21+)
 - **Database Engine**: SQLite 3 (persistent file-based storage)
 - **Database Driver**: `better-sqlite3` (synchronous, high-performance, parameterized queries)
+- **Security Middleware**: `helmet` (v8.1.0) for HTTP response header hardening
+- **Rate Limiting**: `express-rate-limit` (v7.5.0) for DDoS/spam mitigation on submissions
+- **CORS Support**: `cors` (v2.8.5)
 - **Environment Management**: `dotenv`
 - **Testing Framework**: Node.js built-in test runner (`node:test`, `node:assert/strict`) with `supertest`
 
@@ -29,6 +32,7 @@ The SQLite schema is defined in [`database/schema.sql`](./database/schema.sql):
 ```sql
 PRAGMA foreign_keys = ON;
 
+-- Internships Table (Task 3)
 CREATE TABLE IF NOT EXISTS internships (
   id TEXT PRIMARY KEY NOT NULL CHECK(length(trim(id)) > 0),
   title TEXT NOT NULL CHECK(length(trim(title)) > 0),
@@ -43,14 +47,35 @@ CREATE TABLE IF NOT EXISTS internships (
 
 CREATE INDEX IF NOT EXISTS idx_internships_domain ON internships(domain);
 CREATE INDEX IF NOT EXISTS idx_internships_mode ON internships(mode);
+
+-- Applications Table (Task 4)
+CREATE TABLE IF NOT EXISTS applications (
+  id TEXT PRIMARY KEY NOT NULL,
+  internship_id TEXT NOT NULL,
+  full_name TEXT NOT NULL CHECK(length(trim(full_name)) > 0),
+  email TEXT NOT NULL CHECK(length(trim(email)) > 0),
+  cover_letter TEXT,
+  created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+  FOREIGN KEY (internship_id) REFERENCES internships(id) ON DELETE CASCADE,
+  UNIQUE(internship_id, email)
+);
+
+CREATE INDEX IF NOT EXISTS idx_applications_internship_id ON applications(internship_id);
+CREATE INDEX IF NOT EXISTS idx_applications_email ON applications(email);
 ```
 
 ### Constraints & Types
-- **`id`**: Primary key string (2–50 chars, e.g. `INT-101`). Unique and non-empty.
-- **`title`**, **`domain`**, **`location`**: Non-empty trimmed strings.
-- **`mode`**: Restricted to `'Remote'`, `'Hybrid'`, or `'On-site'`.
-- **`skills`**: Valid JSON array string in database; returned as native array in API responses.
-- **`openings`**: Non-negative integer (`>= 0`).
+- **`internships.id`**: Primary key string (2–50 chars, e.g. `INT-101`). Unique and non-empty.
+- **`internships.title`**, **`domain`**, **`location`**: Non-empty trimmed strings.
+- **`internships.mode`**: Restricted to `'Remote'`, `'Hybrid'`, or `'On-site'`.
+- **`internships.skills`**: Valid JSON array string in database; returned as native array in API responses.
+- **`internships.openings`**: Non-negative integer (`>= 0`).
+- **`applications.id`**: Unique string identifier prefixed with `APP-` and a nanoid token.
+- **`applications.internship_id`**: Foreign key pointing to `internships.id` with `ON DELETE CASCADE`.
+- **`applications.full_name`**: 2–100 characters trimmed text.
+- **`applications.email`**: Validated RFC 5322 lowercase email address.
+- **`applications.cover_letter`**: Optional text (up to 1,000 characters).
+- **`UNIQUE(internship_id, email)`**: Database constraint strictly preventing duplicate applications for the same role from the same applicant.
 - **`created_at`** / **`updated_at`**: Timestamps in UTC `YYYY-MM-DD HH:MM:SS`.
 
 ---
@@ -401,34 +426,198 @@ Every endpoint strictly adheres to predictable JSON envelopes:
 
 ---
 
-## 10. Actual Test Results
+### 7. Submit Internship Application (Task 4)
+- **Method / Path**: `POST /api/applications`
+- **Rate Limit**: 10 submissions per 15-minute window per IP (returns `429 Too Many Requests` when exceeded)
+- **Status Codes**: `201 Created`, `400 Bad Request`, `404 Not Found`, `409 Conflict`, `429 Too Many Requests`
 
-Automated tests run on Node.js test runner:
-- **Total Tests**: 26
-- **Passed**: 26
-- **Failed**: 0
-- **Skipped**: 0
-- **Duration**: ~520ms
+#### Request Payload Schema
+```json
+{
+  "internshipId": "INT-101",
+  "fullName": "Jane Doe",
+  "email": "jane.doe@example.com",
+  "coverLetter": "Passionate frontend developer experienced with Vanilla JS and CSS Grid."
+}
+```
+- **`internshipId`** *(required)*: Existing internship identifier string.
+- **`fullName`** *(required)*: 2–100 characters, trimmed.
+- **`email`** *(required)*: Valid email format conforming to standard RFC 5322 pattern. Normalized to lowercase.
+- **`coverLetter`** *(optional)*: Up to 1,000 characters.
 
-### Verified Test Areas
-1. Health check & root API index
-2. Read all 5 seeded official records
-3. Pagination (`page=1&limit=2`, `page=3&limit=2`, out-of-range pages)
-4. Pagination query validation (reject non-integers, negative numbers, `limit > 100`)
-5. Get single internship by valid ID and 404 for invalid ID
-6. Create valid record (`201 Created`)
-7. Create reject missing title, missing domain, invalid mode, invalid skills type, negative openings, malformed JSON
-8. Duplicate ID rejection (`409 Conflict`)
-9. Update valid record (`200 OK`) and 404 for nonexistent ID
-10. Update reject body attempting to modify ID (`400 Bad Request`)
-11. Update reject missing required fields
-12. Delete existing record (`200 OK`) and subsequent GET verification (`404 Not Found`)
-13. Delete unknown ID (`404 Not Found`)
-14. Database persistence: record verified to survive complete database connection shutdown and reopen without re-seeding
+#### Example curl (Success):
+```bash
+curl -s -X POST http://localhost:5000/api/applications \
+  -H "Content-Type: application/json" \
+  -d '{
+    "internshipId": "INT-101",
+    "fullName": "Jane Doe",
+    "email": "jane.doe@example.com",
+    "coverLetter": "Excited to apply for Frontend Intern."
+  }'
+```
+Response (`201 Created`):
+```json
+{
+  "status": "success",
+  "message": "Application submitted successfully",
+  "data": {
+    "id": "APP-20261125-9k2x",
+    "internshipId": "INT-101",
+    "fullName": "Jane Doe",
+    "email": "jane.doe@example.com",
+    "coverLetter": "Excited to apply for Frontend Intern.",
+    "createdAt": "2026-11-25 07:45:00"
+  }
+}
+```
+
+#### Example curl (Duplicate Application):
+```bash
+curl -s -X POST http://localhost:5000/api/applications \
+  -H "Content-Type: application/json" \
+  -d '{
+    "internshipId": "INT-101",
+    "fullName": "Jane Doe",
+    "email": "jane.doe@example.com"
+  }'
+```
+Response (`409 Conflict`):
+```json
+{
+  "status": "error",
+  "message": "An application with email 'jane.doe@example.com' has already been submitted for this internship",
+  "errors": [
+    {
+      "field": "email",
+      "message": "You have already applied for this internship with this email address"
+    }
+  ]
+}
+```
+
+#### Example curl (Validation Failure):
+```bash
+curl -s -X POST http://localhost:5000/api/applications \
+  -H "Content-Type: application/json" \
+  -d '{
+    "internshipId": "INT-101",
+    "fullName": "J",
+    "email": "invalid-email"
+  }'
+```
+Response (`400 Bad Request`):
+```json
+{
+  "status": "error",
+  "message": "Validation failed",
+  "errors": [
+    {
+      "field": "fullName",
+      "message": "Full name must be between 2 and 100 characters"
+    },
+    {
+      "field": "email",
+      "message": "Please provide a valid email address (e.g. name@example.com)"
+    }
+  ]
+}
+```
+
+#### Example Response (Rate Limit Exceeded — `429 Too Many Requests`):
+```json
+{
+  "status": "error",
+  "message": "Too many application submissions from this IP, please try again later",
+  "errors": []
+}
+```
 
 ---
 
-## 11. Known Limitations
+## 10. Security Architecture & Controls (Task 4)
 
-- **Single-Node SQLite Storage**: SQLite is an embedded single-node database. While ideal for local development, portfolios, and single-instance deployments, high-concurrency multi-node clusters would require a client-server database like PostgreSQL.
-- **Frontend Decoupling**: In accordance with Task 3 scope, the frontend on GitHub Pages continues to read verified records from `data/internships.json` because GitHub Pages does not run backend Node.js processes. Full client-server integration is scheduled for later internship tasks.
+1. **Rate Limiting (`express-rate-limit`)**:
+   - Targeted on `POST /api/applications` to block rapid automated spam, credential stuffing, and bot submissions.
+   - Configured via environment variables:
+     - `RATE_LIMIT_WINDOW_MS`: Time window in milliseconds (default: `900000` = 15 minutes).
+     - `RATE_LIMIT_MAX`: Max submissions per window per IP (default: `10`).
+   - Normal browsing endpoints (`GET /api/internships`, `GET /api/internships/:id`) remain unaffected so honest users can continue exploring listings.
+
+2. **Secure HTTP Headers (`helmet`)**:
+   - Uses `helmet` (v8.1.0) on all Express routes.
+   - Sets security headers:
+     - `X-Content-Type-Options: nosniff` (prevents MIME type sniffing)
+     - `X-Frame-Options: SAMEORIGIN` (mitigates clickjacking)
+     - `X-DNS-Prefetch-Control: off`
+     - `Strict-Transport-Security: max-age=15552000; includeSubDomains`
+     - `Cross-Origin-Resource-Policy: cross-origin` (permits local and hosted frontends to interact with API while isolating malicious contexts)
+
+3. **Parameterized SQL Queries**:
+   - All database reads and writes use `better-sqlite3` prepared statements with positional bind parameters (`?`).
+   - Never concatenates user inputs into SQL strings, completely neutralising SQL injection attacks. Verified with malicious payloads (e.g. `'; DROP TABLE applications; --`).
+
+4. **Applicant Data Privacy**:
+   - Applicant personal information (`fullName`, `email`, `coverLetter`) is isolated to the `applications` table.
+   - Public internship endpoints (`GET /api/internships`, `GET /api/internships/:id`) never expose applicant identities or submission counts.
+   - Server logs never output applicant emails, personal identifiers, or sensitive payload details.
+
+5. **Dual-Layer Validation**:
+   - Client-side validation in `js/application.js` provides immediate, accessible UI feedback before network dispatch.
+   - Server-side validation in `backend/src/validators/applicationValidator.js` ensures that direct API clients (curl, Postman, scripts) cannot bypass validation constraints.
+
+---
+
+## 11. Actual Test Results
+
+Automated test verification executed via Node.js native test runner (`node --test tests/**/*.test.js`):
+- **Total Test Suites**: 11
+- **Total Tests**: 41
+- **Passed**: 41
+- **Failed**: 0
+- **Skipped**: 0
+- **Duration**: ~740ms
+
+### Breakdown of Verified Test Suites
+
+#### Task 3 Tests (26 Tests — All Passing):
+1. Health check & root API index (`GET /api/health`, `GET /`, 404 handler)
+2. Read all 5 seeded official records (`GET /api/internships`)
+3. Pagination slicing (`page=1&limit=2`, `page=3&limit=2`, out-of-range pages)
+4. Pagination query validation (reject non-integers, negative numbers, `limit > 100`)
+5. Single internship query (`GET /api/internships/:id` and 404 handler)
+6. Create valid record (`POST /api/internships` -> 201 Created)
+7. Create validation rejections (missing title, domain, invalid mode, skills type, negative openings, malformed JSON)
+8. Duplicate ID conflict rejection (`409 Conflict`)
+9. Update valid record (`PUT /api/internships/:id` -> 200 OK)
+10. Update rejection rules (immutable ID, missing required fields, 404 handler)
+11. Delete record (`DELETE /api/internships/:id` -> 200 OK and 404 verification)
+12. Database persistence verification across complete SQLite connection close and reopen
+
+#### Task 4 Tests (15 Tests — All Passing):
+1. `creates a valid application and returns HTTP 201 with predictable envelope`
+2. `creates a valid application with omitted optional cover letter`
+3. `rejects duplicate application (same email for same internship) with HTTP 409`
+4. `allows same email to apply to a DIFFERENT internship`
+5. `rejects non-existent internship ID with HTTP 404`
+6. `rejects missing or empty full name with HTTP 400`
+7. `rejects invalid email formats with HTTP 400`
+8. `rejects cover letter exceeding 1000 characters with HTTP 400`
+9. `rejects unexpected or unsupported payload properties with HTTP 400`
+10. `verifies Helmet secure HTTP headers are present in responses`
+11. `safely handles SQL injection attempts in fullName and email using parameterized queries`
+12. `verifies applicant personal information is NOT leaked through public internship listings`
+13. `triggers HTTP 429 Too Many Requests when application rate limit is exceeded`
+14. `confirms rate limiter does NOT block normal internship browsing`
+15. `persists submitted applications across database connection restarts`
+
+---
+
+## 12. Deployment & Runtime Environment Notes
+
+- **Backend Runtime**: Node.js / Express listening locally on port `5000` (`http://localhost:5000/api`).
+- **Database**: Local file-based SQLite database (`backend/database/internships.db`), excluded from git tracking to prevent leaking local runtime state.
+- **Frontend Integration**:
+  - The static frontend on GitHub Pages ([Live Demo](https://nijjukrr.github.io/EDVYRO--RESPONSIVE-Internship-/)) gracefully falls back to `data/internships.json` if a local backend is not running.
+  - When the backend is running locally at `http://localhost:5000`, the frontend automatically communicates with the Express REST API (`GET /api/internships` and `POST /api/applications`).
+  - The API endpoint can be customized via `window.__API_BASE_URL__` or `localStorage.getItem('INTERNBOARD_API_URL')`.

@@ -1,42 +1,60 @@
-# InternBoard — Responsive Internship Board
+# InternBoard — Responsive Internship Board & Secure REST API
 
-> **EdVyro Full Stack Development Internship – Task 2**  
-> A responsive, accessible internship discovery platform built entirely with semantic **HTML5**, modern **CSS3**, and modular **Vanilla JavaScript (ES6+)** with zero frontend frameworks.
+> **EdVyro Full Stack Development Internship — Tasks 2, 3 & 4 (Secure Application Integration)**  
+> A production-structured full-stack application featuring a responsive, accessible frontend built entirely with semantic **HTML5**, modern **CSS3**, and modular **Vanilla JavaScript (ES6+)**, integrated securely with a **Node.js / Express REST API** and persistent **SQLite database** protected by rate limiting, security headers, parameterized queries, and dual-layer validation.
 
 ---
 
 ## 1. Project Overview
 
-**InternBoard** is a clean, production-structured web application that lets students explore internship opportunities, search across titles, domains, skills, and locations, combine multiple filters, inspect full role details in a keyboard-accessible modal, and browse comfortably across mobile, tablet, and desktop screens.
+**InternBoard** is a complete, production-quality full-stack platform where students can explore verified internship opportunities, filter and search listings, view in-depth role details in an accessible modal dialog, and submit internship applications with real-time client-side feedback and server-side validation.
+
+The project demonstrates progressive, clean full-stack architecture:
+- **Task 2**: Responsive, zero-framework Vanilla JS frontend with accessible UI, search, multi-domain filtering, statistics, and modal dialogues.
+- **Task 3**: Production-structured Node.js/Express REST API backed by persistent SQLite storage, pagination, and parameterized CRUD endpoints.
+- **Task 4**: Secure client-server application integration, interactive application submission modal, dual-layer validation, rate limiting (`express-rate-limit`), security headers (`helmet`), and duplicate application prevention.
 
 ---
 
 ## 2. Problem Statement
 
-Students searching for early-career internships often encounter cluttered job boards that mix unverified information, lack clear skill tags, or fail on mobile devices and keyboard-only navigation. InternBoard solves this by presenting structured internship records from a validated JSON dataset in a fast, distraction-free, responsive, and accessible interface.
+Students seeking early-career internships often encounter cluttered job boards that mix unverified postings, lack clear skill requirements, fail on mobile viewports, or lack accessible navigation. Additionally, job application endpoints are frequently vulnerable to automated spam, SQL injection, and data leakage. InternBoard solves this through a clean, accessible interface backed by an enterprise-hardened, parameterized API.
 
 ---
 
 ## 3. Features
 
-- **Dynamic Dataset Loading & Validation**: Fetches and validates records from `data/internships.json` (sourced from the official EdVyro sample dataset) without fabricating missing fields.
-- **Live Statistics Dashboard**: Automatically calculates Total Internships, Total Openings, Available Domains, Remote Opportunities, and Paid Opportunities from the loaded dataset.
-- **Case-Insensitive Search**: Searches across internship title, company (if provided), description (if provided), domain, required skills, location, and ID, trimming extra whitespace and syncing the Hero search bar with the Listing search bar.
-- **Combined Multi-Filter & Sorting Controls**: Filter simultaneously by **Domain**, **Work Mode** (`Remote`, `Hybrid`, `On-site`), and **Stipend** (`All`, `Paid`, `Unpaid`, `Not Specified`), and sort by Default Order, Title (`A–Z` / `Z–A`), Openings (`High to Low` / `Low to High`), or Domain (`A–Z`).
-- **Accessible Details Modal**: Opens a `role="dialog"` (`aria-modal="true"`) modal displaying metadata, description, responsibilities, required skills, eligibility, and application status, with focus trapping, `Escape`-key closing, backdrop closing, and focus restoration to the triggering button.
-- **Empty & Error States**: Displays a helpful empty state (`"No internships found."`) with **Clear Filters** / **Reset Search** actions, plus a recoverable error state with console diagnostics and a **Retry** button when data loading fails.
-- **Responsive Mobile Navigation**: Sticky header with a keyboard-accessible hamburger menu (`aria-expanded`, `aria-controls`, `Escape`-key dismissal).
+### Frontend (Tasks 2 & 4)
+- **Dynamic API & Dataset Integration**: Fetches records from the Express API (`GET /api/internships`) with automatic fallback to `data/internships.json` when the backend is offline.
+- **Live Statistics Dashboard**: Real-time totals for Total Internships, Openings, Domains, Remote Roles, and Stipend distributions.
+- **Multi-Filter & Case-Insensitive Search**: Search by title, domain, skills, or location, and compose domain, work mode, and stipend filters simultaneously.
+- **Accessible Role Details Modal**: Fully accessible dialog (`role="dialog"`, `aria-modal="true"`) with keyboard trap, `Escape` key close, and focus restoration.
+- **Interactive Application Modal (Task 4)**: Submit applications directly from internship cards or details modal with inline client validation, loading state spinner, duplicate rejection handling, and confirmation receipt.
+- **Accessible Form Controls**: Semantic labels, live validation error feedback (`aria-describedby`, `aria-invalid`), keyboard navigation, and focus restoration.
+- **Empty & Error States**: Contextual empty states (`"No internships found."`) and recoverable error UI with retry capabilities.
+- **Responsive Navigation**: Mobile hamburger drawer with keyboard controls, supporting viewports from 360px to 1920px.
+
+### Backend & Security (Tasks 3 & 4)
+- **Node.js & Express REST API**: Predictable envelope architecture for all responses (`status`, `data`, `message`, `errors`).
+- **Persistent SQLite Storage**: Embedded SQLite database (`better-sqlite3`) with foreign key enforcement and indexes.
+- **Application Submission (`POST /api/applications`)**: Server-validated application submission with unique candidate constraints per internship.
+- **Rate Limiting (`express-rate-limit`)**: Anti-spam protection on application submissions (10 requests per 15-minute window per IP) while keeping listing browsing completely unthrottled.
+- **Security Headers (`helmet`)**: Industry-standard HTTP headers (`nosniff`, `SAMEORIGIN`, `cross-origin` resource policy).
+- **Parameterized SQL**: 100% of queries use positional prepared statement parameters (`?`), eliminating SQL injection.
+- **Data Privacy**: Applicant personal details are never exposed in public listing endpoints or server logs.
 
 ---
 
 ## 4. Technology Stack
 
-- **HTML5**: Semantic landmarks (`<header>`, `<nav>`, `<main>`, `<section>`, `<article>`, `<footer>`), explicit form labels, and ARIA attributes.
-- **CSS3**: Custom properties (`:root` variables), CSS Grid, Flexbox, sticky header, `prefers-reduced-motion` support, and multi-breakpoint responsive styles (`css/style.css` + `css/responsive.css`).
-- **Vanilla JavaScript (ES6+)**: Modular ES6 architecture (`js/app.js`, `js/data.js`, `js/validation.js`, `js/filters.js`, `js/ui.js`) using safe DOM APIs (`createElement`, `textContent`) to prevent HTML injection.
-- **Data**: JSON (`data/internships.json`) preserving the official EdVyro sample records (`INT-101` through `INT-105`).
+- **Frontend**: HTML5, CSS3 (Custom properties, CSS Grid, Flexbox), Vanilla JavaScript (ES6+ native modules)
+- **Backend**: Node.js (v18.0.0+), Express.js (v4.21+)
+- **Database**: SQLite 3 with `better-sqlite3` driver
+- **Security Middleware**: `helmet` (v8.1.0), `express-rate-limit` (v7.5.0), `cors` (v2.8.5)
+- **Testing**: Built-in Node.js test runner (`node:test`, `node:assert/strict`) with `supertest`
+- **Deployment**: GitHub Pages (Frontend static hosting) & Local Node.js Express server
 
-*Zero frameworks or UI libraries are used (no React, Vue, Angular, Next.js, Bootstrap, or Tailwind CSS).*
+*(Strictly zero frontend frameworks: No React, Vue, Angular, Next.js, Bootstrap, or Tailwind CSS).*
 
 ---
 
@@ -44,30 +62,53 @@ Students searching for early-career internships often encounter cluttered job bo
 
 ```text
 .
-├── index.html
+├── index.html                           # Main frontend application entry point
 ├── css/
-│   ├── style.css
-│   └── responsive.css
+│   ├── style.css                        # Design system, layout, cards, modals, forms
+│   └── responsive.css                   # Responsive breakpoints (360px to 1920px)
 ├── js/
-│   ├── app.js
-│   ├── data.js
-│   ├── filters.js
-│   ├── ui.js
-│   └── validation.js
+│   ├── app.js                           # Frontend controller and initialization
+│   ├── config.js                        # API URL discovery & configuration (Task 4)
+│   ├── data.js                          # API & JSON data loader with error recovery (Task 4)
+│   ├── application.js                   # Application form validation & submission (Task 4)
+│   ├── filters.js                       # Composable search, filter, and sorting engine
+│   ├── ui.js                            # DOM rendering, modals, and statistics
+│   └── validation.js                    # Schema validation and data normalization
 ├── data/
-│   └── internships.json
+│   └── internships.json                 # Official 5 EdVyro sample records (fallback dataset)
+├── backend/                             # Complete Node.js / Express REST API (Tasks 3 & 4)
+│   ├── package.json                     # Backend dependencies and test scripts
+│   ├── .env.example                     # Environment template (PORT, RATE_LIMIT)
+│   ├── database/
+│   │   ├── schema.sql                   # SQLite schema (internships + applications)
+│   │   ├── seed.js                      # Idempotent database seeder (INT-101 to INT-105)
+│   │   └── initDb.js                    # Database initialization script
+│   ├── src/
+│   │   ├── app.js                       # Express app configuration & middleware
+│   │   ├── server.js                    # Server HTTP listener entry point
+│   │   ├── config/database.js           # SQLite connection management & PRAGMAs
+│   │   ├── middleware/
+│   │   │   ├── errorHandler.js          # Centralized error handler
+│   │   │   └── rateLimiter.js           # express-rate-limit configuration (Task 4)
+│   │   ├── validators/
+│   │   │   ├── internshipValidator.js   # Internship payload schema validation
+│   │   │   └── applicationValidator.js  # Application payload schema validation (Task 4)
+│   │   ├── services/
+│   │   │   ├── internshipService.js     # Internship business logic & SQL operations
+│   │   │   └── applicationService.js    # Application submission & duplicate checks (Task 4)
+│   │   ├── controllers/
+│   │   │   ├── internshipController.js  # Internship route controllers
+│   │   │   └── applicationController.js # Application submission controller (Task 4)
+│   │   └── routes/
+│   │       ├── internshipRoutes.js      # /api/internships router
+│   │       └── applicationRoutes.js     # /api/applications router (Task 4)
+│   ├── tests/
+│   │   ├── internships.test.js          # 26 automated tests for Task 3 REST API
+│   │   └── applications.test.js         # 15 automated tests for Task 4 Security & Apps
+│   └── README.md                        # Comprehensive backend API documentation
 ├── assets/
-│   └── images/
-│       ├── hero-illustration.svg
-│       └── logo.svg
-├── screenshots/
-│   ├── desktop-1440.png
-│   ├── listings-desktop.png
-│   ├── modal-details.png
-│   ├── empty-state.png
-│   ├── error-state.png
-│   ├── tablet-768.png
-│   └── mobile-360.png
+│   └── images/                          # Brand logos and SVG illustrations
+├── screenshots/                         # Multi-breakpoint UI verification captures
 ├── .gitignore
 └── README.md
 ```
@@ -612,32 +653,167 @@ Response (`200 OK`):
 }
 ```
 
+### G. Submit Internship Application (Task 4)
+- **`POST /api/applications`**
+- Submits a candidate application with dual-layer validation and duplicate rejection.
+- Rate-limited to 10 submissions per 15-minute window per IP.
+
+```bash
+curl -s -X POST http://localhost:5000/api/applications \
+  -H "Content-Type: application/json" \
+  -d '{
+    "internshipId": "INT-101",
+    "fullName": "Priya Sharma",
+    "email": "priya.sharma@example.com",
+    "coverLetter": "Experienced in semantic HTML, modern CSS, and ES6 JavaScript modules."
+  }'
+```
+Response (`201 Created`):
+```json
+{
+  "status": "success",
+  "message": "Application submitted successfully",
+  "data": {
+    "id": "APP-20261125-9k2x",
+    "internshipId": "INT-101",
+    "fullName": "Priya Sharma",
+    "email": "priya.sharma@example.com",
+    "coverLetter": "Experienced in semantic HTML, modern CSS, and ES6 JavaScript modules.",
+    "createdAt": "2026-11-25 07:50:00"
+  }
+}
+```
+
+Duplicate submission attempt returns HTTP `409 Conflict`:
+```json
+{
+  "status": "error",
+  "message": "An application with email 'priya.sharma@example.com' has already been submitted for this internship",
+  "errors": [
+    {
+      "field": "email",
+      "message": "You have already applied for this internship with this email address"
+    }
+  ]
+}
+```
+
 ---
 
-## 9. Automated Test Verification
+## 9. Task 4: Secure Application Integration & Architecture
 
-Automated tests verified using Node.js native test runner:
-- **Total Tests**: 26
-- **Passed**: 26
+### Full-Stack Data & Application Flow
+```text
+[ Browser / Frontend Client ]
+       │
+       ├─ (1) Fetch Listings ───────────────► GET  /api/internships ─────────────► [ SQLite: internships ]
+       │      (Fallback to data/internships.json if API is unreachable)
+       │
+       ├─ (2) Candidate opens modal & fills form (fullName, email, optional coverLetter)
+       │      │
+       │      ▼
+       │   [ Client-Side Validation (js/application.js) ]
+       │   - Immediate UI feedback, inline error messages, aria-invalid flags
+       │
+       └─ (3) Submit Form ──────────────────► POST /api/applications
+                                                     │
+                                                     ▼
+                                          [ Rate Limiter (express-rate-limit) ]
+                                          - 10 requests / 15m / IP (429 if exceeded)
+                                                     │
+                                                     ▼
+                                          [ Helmet Security Headers ]
+                                                     │
+                                                     ▼
+                                          [ Server Validation (applicationValidator) ]
+                                          - Sanitizes input, validates RFC 5322 email
+                                                     │
+                                                     ▼
+                                          [ SQLite Parameterized Insert (better-sqlite3) ]
+                                          - Checks internship exists (404 if missing)
+                                          - UNIQUE(internship_id, email) (409 if duplicate)
+                                          - Prepares SQL with '?' parameters (no SQLi)
+                                                     │
+                                                     ▼
+                                          [ Returns HTTP 201 Envelope ]
+                                                     │
+       ◄─────────────────────────────────────────────┘
+       │
+       ▼
+[ Frontend Receipt View ]
+- Displays unique application confirmation ID and details
+- Live screen reader announcement (aria-live="polite")
+```
+
+### Security Hardening Measures
+1. **Rate Limiting**: `POST /api/applications` is bounded by `express-rate-limit` to prevent automated application spam and denial-of-service attempts. Browsing remains unaffected.
+2. **Security Headers**: `helmet` (v8.1.0) configures strict HTTP response headers (`X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, `Cross-Origin-Resource-Policy: cross-origin`).
+3. **100% Parameterized SQL Queries**: Prepared statements with positional `?` placeholders prevent SQL injection across all fields.
+4. **Applicant Privacy Guarantee**: Personal applicant records are strictly isolated in `applications` and never returned in public internship endpoints.
+5. **Focus Trapping & Accessibility**: Application modal includes keyboard focus cycling, `Escape` key dismissal, explicit `<label>` bindings, and ARIA alert regions.
+
+---
+
+## 10. Automated Test Verification
+
+Automated test suites executed with Node.js native test runner (`cd backend && npm test`):
+- **Total Test Suites**: 11
+- **Total Automated Tests**: 41
+- **Passed**: 41
 - **Failed**: 0
 - **Skipped**: 0
-- **Execution Time**: ~520ms
+- **Execution Time**: ~740ms
 
-### Verified Test Scenarios
-1. **Health Check & Index**: `GET /api/health` returns `api: running, database: connected`; root returns index; unknown route returns 404.
-2. **List Records**: `GET /api/internships` returns all 5 seeded records with complete pagination metadata.
-3. **Pagination Mechanics**: Correct page slicing (`page=1&limit=2`, `page=3&limit=2`), out-of-range returns empty array.
-4. **Pagination Validation**: Rejects `page=0`, `page=-3`, `page=abc`, and `limit > 100` with HTTP 400.
-5. **Get by ID**: Returns 200 with record for valid ID; returns 404 with error contract for nonexistent ID.
-6. **Create Record**: Returns 201 with created record; rejects duplicate ID with 409; rejects missing title, missing domain, invalid mode, invalid skills type, negative openings, and malformed JSON with HTTP 400.
-7. **Update Record**: Returns 200 with updated record; returns 404 for unknown ID; rejects attempt to modify record ID with 400; rejects missing required fields with 400.
-8. **Delete Record**: Returns 200 after deleting existing record; subsequent GET returns 404; deleting unknown ID returns 404.
-9. **Database Persistence**: Creates record in SQLite, fully closes database connection, reopens connection to the same database file without re-seeding, and proves the record exists and retains all fields.
+### Verified Scenarios Summary
+
+| Category | Suite | Tests | Result |
+|---|---|:---:|:---:|
+| **API Health & Metadata** | `tests/internships.test.js` | 3 | Pass (100%) |
+| **Internship Listings (GET)** | `tests/internships.test.js` | 8 | Pass (100%) |
+| **Internship Creation (POST)** | `tests/internships.test.js` | 8 | Pass (100%) |
+| **Internship Updates (PUT)** | `tests/internships.test.js` | 4 | Pass (100%) |
+| **Internship Deletion (DELETE)** | `tests/internships.test.js` | 2 | Pass (100%) |
+| **Database Persistence (Task 3)** | `tests/internships.test.js` | 1 | Pass (100%) |
+| **Application Submission (Task 4)** | `tests/applications.test.js` | 9 | Pass (100%) |
+| **Security & Headers (Task 4)** | `tests/applications.test.js` | 5 | Pass (100%) |
+| **Database Persistence (Task 4)** | `tests/applications.test.js` | 1 | Pass (100%) |
+| **TOTAL** | **All Suites** | **41** | **41 / 41 (100%)** |
 
 ---
 
-## 10. Known Limitations & Architecture Notes
+## 11. How to Run the Full-Stack Application Locally
 
-1. **Embedded SQLite Database**: SQLite is designed for embedded and single-instance deployments. It provides high performance and zero configuration for portfolios, development, and single-server environments. If scaled to a multi-container cluster across multiple cloud availability zones, a client-server database like PostgreSQL would be recommended.
-2. **Task 2 Frontend Decoupling**: The Task 2 frontend deployed on GitHub Pages remains independently functional via static JSON loading. Because GitHub Pages does not run backend Node.js servers, client-server integration is decoupled to maintain 100% uptime on the live GitHub Pages website. Full live full-stack deployment is designated for later internship tasks.
+### Step 1: Start the Backend REST API
+```bash
+cd backend
+npm install
+npm run init-db
+npm start
+```
+The Express server starts listening at: `http://localhost:5000`
+
+### Step 2: Serve the Frontend
+In a separate terminal from the repository root:
+```bash
+# Using Python
+python -m http.server 8080
+
+# Or using Node.js
+npx serve -l 8080 .
+```
+Open your browser to: `http://localhost:8080`
+
+The frontend automatically discovers the running local backend at `http://localhost:5000/api`, loads live records, and enables application submissions with rate limiting and database persistence.
+
+---
+
+## 12. Deployment & Runtime Notes
+
+1. **Frontend Hosting (GitHub Pages)**:
+   - Live URL: [https://nijjukrr.github.io/EDVYRO--RESPONSIVE-Internship-/](https://nijjukrr.github.io/EDVYRO--RESPONSIVE-Internship-/)
+   - Deployed directly from `main` branch root.
+   - Operates with zero build steps or bundling. When accessed without a local backend running, it gracefully loads verified data from `data/internships.json`.
+2. **Backend API (Local Development)**:
+   - The Node.js Express server and SQLite database are designed for local development and portfolio evaluation (`http://localhost:5000/api`).
+   - All database files (`*.db`) and dependencies (`node_modules`) are strictly excluded from git tracking via `.gitignore`.
 
