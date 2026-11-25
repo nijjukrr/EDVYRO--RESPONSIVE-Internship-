@@ -1,4 +1,5 @@
 const rateLimit = require('express-rate-limit');
+const { logger } = require('../utils/logger');
 
 const windowMs = process.env.RATE_LIMIT_WINDOW_MS
   ? Number(process.env.RATE_LIMIT_WINDOW_MS)
@@ -18,6 +19,10 @@ const applicationRateLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   handler: (req, res) => {
+    logger.warn('rate_limit_exceeded', {
+      method: req.method,
+      path: req.originalUrl
+    });
     return res.status(429).json({
       status: 'error',
       message: 'Too many application submissions from this IP, please try again later',

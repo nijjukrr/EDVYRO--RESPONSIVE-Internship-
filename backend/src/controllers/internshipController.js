@@ -1,4 +1,5 @@
 const internshipService = require('../services/internshipService');
+const { logger } = require('../utils/logger');
 
 /**
  * Controller handling internship endpoints.
@@ -124,6 +125,7 @@ const internshipController = {
       const dbConnected = internshipService.checkDatabaseHealth();
 
       if (!dbConnected) {
+        logger.error('health_check_failed', { database: 'disconnected' });
         return res.status(503).json({
           status: 'error',
           message: 'Database connection check failed',
@@ -131,9 +133,11 @@ const internshipController = {
         });
       }
 
+      logger.info('health_check_ok', { database: 'connected' });
       return res.status(200).json({
         status: 'success',
         data: {
+          service: 'InternBoard API',
           api: 'running',
           database: 'connected'
         }
