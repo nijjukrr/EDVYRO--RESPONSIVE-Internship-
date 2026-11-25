@@ -157,12 +157,39 @@ export function updateStatistics(internships) {
       : "Work-from-anywhere roles"
   );
 
-  setText("stat-paid", paidCount);
-  if (totalInternships > 0 && unspecifiedStipendCount === totalInternships) {
-    setText("stat-paid-note", "Stipend not specified in dataset");
+  if (totalInternships === 0) {
+    setText("stat-paid", "0");
+    setText("stat-paid-note", "No internships loaded");
+  } else if (unspecifiedStipendCount === totalInternships) {
+    setText("stat-paid", "N/A");
+    setText("stat-paid-note", "Not provided in official dataset");
   } else {
+    setText("stat-paid", paidCount);
     setText("stat-paid-note", "Based on dataset stipend info");
   }
+}
+
+/**
+ * Resets dashboard statistics to unavailable placeholders after a failed load.
+ */
+export function resetStatistics() {
+  const setText = (id, value) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = String(value);
+  };
+
+  setText("hero-stat-total", "—");
+  setText("hero-stat-openings", "—");
+  setText("hero-stat-domains", "—");
+
+  setText("stat-total", "—");
+  setText("stat-openings-note", "Dataset unavailable");
+  setText("stat-domains", "—");
+  setText("stat-domains-note", "Dataset unavailable");
+  setText("stat-remote", "—");
+  setText("stat-remote-note", "Dataset unavailable");
+  setText("stat-paid", "—");
+  setText("stat-paid-note", "Dataset unavailable");
 }
 
 /**
@@ -365,13 +392,14 @@ export function renderInternships(internships, container, onViewDetails, onApply
 }
 
 /**
- * Updates the live results count banner.
+ * Updates the live results count banner and honestly labels the active data source.
  * @param {HTMLElement} countEl
  * @param {number} matchedCount
  * @param {number} totalCount
  * @param {number} matchedOpenings
+ * @param {"api" | "static" | null} [sourceType]
  */
-export function updateResultsCount(countEl, matchedCount, totalCount, matchedOpenings) {
+export function updateResultsCount(countEl, matchedCount, totalCount, matchedOpenings, sourceType = null) {
   if (!countEl) return;
 
   countEl.replaceChildren();
@@ -379,10 +407,15 @@ export function updateResultsCount(countEl, matchedCount, totalCount, matchedOpe
   strong.textContent = `${matchedCount} of ${totalCount}`;
 
   const prefix = document.createTextNode("Showing ");
-  const suffixText =
-    matchedCount === 1
-      ? ` internship (${matchedOpenings} ${matchedOpenings === 1 ? "opening" : "openings"})`
-      : ` internships (${matchedOpenings} ${matchedOpenings === 1 ? "opening" : "openings"})`;
+  const roleLabel = matchedCount === 1 ? "internship" : "internships";
+  const openingLabel = matchedOpenings === 1 ? "opening" : "openings";
+  const sourceLabel =
+    sourceType === "static"
+      ? " • Source: Verified Static Dataset"
+      : sourceType === "api"
+        ? " • Source: Local Express API"
+        : "";
+  const suffixText = ` ${roleLabel} (${matchedOpenings} ${openingLabel})${sourceLabel}`;
 
   countEl.append(prefix, strong, document.createTextNode(suffixText));
 }
@@ -411,18 +444,20 @@ export function showLoadingState(container) {
 }
 
 /**
- * Displays the Empty State when search/filter criteria match zero records.
+ * Displays the Empty State when search/filter criteria match zero records or the dataset is empty.
  * @param {HTMLElement} container
  * @param {boolean} hasSearchQuery
  * @param {() => void} onClearFilters
  * @param {() => void} onResetSearch
+ * @param {boolean} [hasAnyRecords]
  */
-export function showEmptyState(container, hasSearchQuery, onClearFilters, onResetSearch) {
+export function showEmptyState(container, hasSearchQuery, onClearFilters, onResetSearch, hasAnyRecords = true) {
   if (!container) return;
 
   const stateCard = document.createElement("div");
   stateCard.className = "state-card";
   stateCard.setAttribute("role", "status");
+  stateCard.setAttribute("aria-live", "polite");
 
   const iconWrap = document.createElement("div");
   iconWrap.className = "state-icon";
@@ -434,8 +469,9 @@ export function showEmptyState(container, hasSearchQuery, onClearFilters, onRese
 
   const message = document.createElement("p");
   message.className = "state-message";
-  message.textContent =
-    "No listings match your current search or filter combination. Try broadening your keywords or clearing active filters.";
+  message.textContent = hasAnyRecords
+    ? "No listings match your current search or filter combination. Try broadening your keywords or clearing active filters."
+    : "No internship records are currently available from the configured data source.";
 
   const actions = document.createElement("div");
   actions.className = "state-actions";
@@ -443,11 +479,11 @@ export function showEmptyState(container, hasSearchQuery, onClearFilters, onRese
   const clearBtn = document.createElement("button");
   clearBtn.type = "button";
   clearBtn.className = "btn btn-primary";
-  clearBtn.textContent = "Clear Filters";
+  clearBtn.textContent = hasAnyRecords ? "Clear Filters" : "Refresh";
   clearBtn.addEventListener("click", onClearFilters);
   actions.appendChild(clearBtn);
 
-  if (hasSearchQuery) {
+  if (hasAnyRecords && hasSearchQuery) {
     const resetSearchBtn = document.createElement("button");
     resetSearchBtn.type = "button";
     resetSearchBtn.className = "btn btn-secondary";
@@ -462,6 +498,7 @@ export function showEmptyState(container, hasSearchQuery, onClearFilters, onRese
 
 /**
  * Displays a recoverable Error State with a Retry action.
+ * Prevents duplicate simultaneous retry clicks while a reload is running.
  * @param {HTMLElement} container
  * @param {string} errorMessage
  * @param {() => void} onRetry
@@ -493,7 +530,12 @@ export function showErrorState(container, errorMessage, onRetry) {
   retryBtn.type = "button";
   retryBtn.className = "btn btn-primary";
   retryBtn.textContent = "Retry";
-  retryBtn.addEventListener("click", onRetry);
+  retryBtn.addEventListener("click", () => {
+    if (retryBtn.disabled) return;
+    retryBtn.disabled = true;
+    retryBtn.textContent = "Retrying...";
+    onRetry();
+  });
 
   actions.appendChild(retryBtn);
   stateCard.append(iconWrap, heading, message, actions);

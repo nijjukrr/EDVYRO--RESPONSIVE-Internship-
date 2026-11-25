@@ -140,12 +140,28 @@ export function validateInternship(record, index = 0) {
 }
 
 /**
- * Validates the entire dataset payload returned from JSON.
- * Supports `{ internships: [...] }` as well as top-level arrays.
+ * Validates the entire dataset payload returned from JSON or API response.
+ * Supports `{ status: "success", data: [...] }`, `{ internships: [...] }`, and top-level arrays.
  * @param {unknown} payload
  * @returns {{ internships: object[], warnings: string[] }}
  */
 export function validateDataset(payload) {
+  if (payload && typeof payload === "object" && !Array.isArray(payload) && "status" in payload) {
+    if (payload.status === "error") {
+      throw new Error(
+        typeof payload.message === "string" && payload.message.trim()
+          ? payload.message.trim()
+          : "API returned an error response."
+      );
+    }
+    if (payload.status !== "success") {
+      throw new Error("Unexpected API response status envelope.");
+    }
+    if (!Array.isArray(payload.data)) {
+      throw new Error('Unexpected API response envelope: expected a "data" array.');
+    }
+  }
+
   const rawList = Array.isArray(payload)
     ? payload
     : payload && typeof payload === "object" && Array.isArray(payload.internships)
@@ -155,7 +171,11 @@ export function validateDataset(payload) {
         : null;
 
   if (!rawList) {
-    throw new Error('Dataset format is invalid: expected an object with an "internships" array.');
+    throw new Error('Dataset format is invalid: expected an object with an "internships" or "data" array.');
+  }
+
+  if (rawList.length === 0) {
+    return { internships: [], warnings: [] };
   }
 
   const internships = [];

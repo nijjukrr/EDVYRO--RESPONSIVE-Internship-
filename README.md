@@ -82,7 +82,7 @@ Students seeking early-career internships often encounter cluttered job boards t
 │   ├── database/
 │   │   ├── schema.sql                   # SQLite schema (internships + applications)
 │   │   ├── seed.js                      # Idempotent database seeder (INT-101 to INT-105)
-│   │   └── initDb.js                    # Database initialization script
+│   │   └── init.js                      # Database initialization script
 │   ├── src/
 │   │   ├── app.js                       # Express app configuration & middleware
 │   │   ├── server.js                    # Server HTTP listener entry point
@@ -104,8 +104,10 @@ Students seeking early-career internships often encounter cluttered job boards t
 │   │       └── applicationRoutes.js     # /api/applications router (Task 4)
 │   ├── tests/
 │   │   ├── internships.test.js          # 26 automated tests for Task 3 REST API
-│   │   └── applications.test.js         # 15 automated tests for Task 4 Security & Apps
+│   │   └── applications.test.js         # 18 automated tests for Task 4 Security & Apps
 │   └── README.md                        # Comprehensive backend API documentation
+├── tests/
+│   └── frontend.test.mjs                # 13 automated frontend & environment tests
 ├── assets/
 │   └── images/                          # Brand logos and SVG illustrations
 ├── screenshots/                         # Multi-breakpoint UI verification captures
@@ -702,37 +704,50 @@ Duplicate submission attempt returns HTTP `409 Conflict`:
 
 ## 9. Task 4: Secure Application Integration & Architecture
 
+### Runtime Modes: GitHub Pages vs Local Full-Stack
+
+| Capability | Public GitHub Pages Mode (`nijjukrr.github.io`) | Local Full-Stack Mode (`localhost:8080` + `localhost:5000`) |
+|---|---|---|
+| **Data Source** | Verified static dataset (`/EDVYRO--RESPONSIVE-Internship-/data/internships.json`) loaded directly without triggering failing API calls | Live Express REST API (`GET http://localhost:5000/api/internships`) backed by SQLite |
+| **Search, Filters, Sorting, Modals** | Full interactive functionality across all 5 official records (`INT-101` to `INT-105`) | Full interactive functionality powered by database records |
+| **Application Form UI & Validation** | Opens accessible modal and validates inputs client-side | Opens accessible modal and validates inputs on client and server |
+| **Application Submission & Persistence** | Honestly informs the user that static GitHub Pages cannot execute the Express/SQLite backend; no fake receipt or false POST request | Persists validated applications in SQLite (`POST /api/applications`), enforces duplicate rejection (`409`), rate limiting (`429`), and returns a real server receipt ID (`APP-...`) |
+
 ### Full-Stack Data & Application Flow
 ```text
 [ Browser / Frontend Client ]
        │
-       ├─ (1) Fetch Listings ───────────────► GET  /api/internships ─────────────► [ SQLite: internships ]
-       │      (Fallback to data/internships.json if API is unreachable)
+       ├─ (0) Environment Detection (js/config.js)
+       │      ├─ *.github.io (no custom API override) ──► Direct static JSON (/EDVYRO--RESPONSIVE-Internship-/data/internships.json)
+       │      └─ localhost / custom API configured ────► Express REST API (http://localhost:5000/api)
+       │
+       ├─ (1) Fetch Listings ───────────────► GET /api/internships (local) OR static JSON (GitHub Pages)
        │
        ├─ (2) Candidate opens modal & fills form (fullName, email, optional coverLetter)
        │      │
        │      ▼
        │   [ Client-Side Validation (js/application.js) ]
-       │   - Immediate UI feedback, inline error messages, aria-invalid flags
+       │   - Immediate inline error messages, aria-invalid flags, focus on first invalid field
        │
-       └─ (3) Submit Form ──────────────────► POST /api/applications
+       └─ (3) Submit Form ──────────────────► POST /api/applications (Local/API Mode)
                                                      │
                                                      ▼
                                           [ Rate Limiter (express-rate-limit) ]
                                           - 10 requests / 15m / IP (429 if exceeded)
+                                          - Standard RateLimit-* headers
                                                      │
                                                      ▼
-                                          [ Helmet Security Headers ]
+                                          [ Helmet Headers + Deliberate CORS Allowlist ]
                                                      │
                                                      ▼
                                           [ Server Validation (applicationValidator) ]
-                                          - Sanitizes input, validates RFC 5322 email
+                                          - Sanitizes input, validates RFC 5322 email & field bounds
                                                      │
                                                      ▼
                                           [ SQLite Parameterized Insert (better-sqlite3) ]
-                                          - Checks internship exists (404 if missing)
-                                          - UNIQUE(internship_id, email) (409 if duplicate)
-                                          - Prepares SQL with '?' parameters (no SQLi)
+                                          - Verifies internship exists (404 if missing)
+                                          - UNIQUE(internship_id, email) + lower(email) index (409 if duplicate)
+                                          - Uses '?' bound parameters exclusively (no SQL injection)
                                                      │
                                                      ▼
                                           [ Returns HTTP 201 Envelope ]
@@ -741,79 +756,89 @@ Duplicate submission attempt returns HTTP `409 Conflict`:
        │
        ▼
 [ Frontend Receipt View ]
-- Displays unique application confirmation ID and details
-- Live screen reader announcement (aria-live="polite")
+- Displays real server-generated application confirmation ID (`APP-...`)
+- Live screen reader announcement (role="status")
 ```
 
-### Security Hardening Measures
-1. **Rate Limiting**: `POST /api/applications` is bounded by `express-rate-limit` to prevent automated application spam and denial-of-service attempts. Browsing remains unaffected.
-2. **Security Headers**: `helmet` (v8.1.0) configures strict HTTP response headers (`X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, `Cross-Origin-Resource-Policy: cross-origin`).
-3. **100% Parameterized SQL Queries**: Prepared statements with positional `?` placeholders prevent SQL injection across all fields.
-4. **Applicant Privacy Guarantee**: Personal applicant records are strictly isolated in `applications` and never returned in public internship endpoints.
-5. **Focus Trapping & Accessibility**: Application modal includes keyboard focus cycling, `Escape` key dismissal, explicit `<label>` bindings, and ARIA alert regions.
+### Task 4 Security Checklist
+- [x] **Rate Limiting (`express-rate-limit`)**: `POST /api/applications` enforces configurable IP throttling (default `10` requests per `15` minutes) with standard `RateLimit-*` headers and `HTTP 429`; listing endpoints remain unaffected.
+- [x] **Security Headers (`helmet`)**: `helmet` (v8.3.0) enforces `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, `X-DNS-Prefetch-Control`, and `Cross-Origin-Resource-Policy: cross-origin`.
+- [x] **Deliberate CORS Allowlist**: Permits local dev origins (`localhost` / `127.0.0.1`), `https://nijjukrr.github.io`, and configured `CORS_ORIGINS`; untrusted third-party origins do not receive `Access-Control-Allow-Origin`.
+- [x] **Parameterized SQL Queries**: 100% of queries in `internshipService.js` and `applicationService.js` use `better-sqlite3` prepared statements with bound `?` placeholders.
+- [x] **Dual-Layer Input Validation**: Enforced identically on client (`js/application.js`) and server (`applicationValidator.js`), rejecting whitespace-only required values, invalid emails, oversized cover letters (>1000 chars), and unsupported JSON properties.
+- [x] **Duplicate Application Prevention**: Database enforces `FOREIGN KEY (internship_id)` + `UNIQUE(internship_id, email)` + case-insensitive unique index on `(internship_id, lower(email))`.
+- [x] **Applicant Privacy & Safe Error Handling**: Applicant personal information is isolated in `applications`, excluded from public `GET /api/internships` responses, and server errors never expose raw SQL or stack traces.
+- [x] **Honest GitHub Pages Behavior**: No phantom backend claims, no false application receipts, and no failing `/api/...` calls on `nijjukrr.github.io`.
 
 ---
 
 ## 10. Automated Test Verification
 
-Automated test suites executed with Node.js native test runner (`cd backend && npm test`):
-- **Total Test Suites**: 11
-- **Total Automated Tests**: 41
-- **Passed**: 41
-- **Failed**: 0
-- **Skipped**: 0
-- **Execution Time**: ~740ms
+Automated test suites executed via Node.js native test runner:
+- **Backend Suite** (`cd backend; npm test`): **44 / 44 passing (100%)** across 11 suites (`internships.test.js` + `applications.test.js`).
+- **Frontend Unit Suite** (`node --test tests/frontend.test.mjs`): **13 / 13 passing (100%)** across 6 suites.
+- **Total Automated Tests**: **57 / 57 passing (0 failures, 0 skipped)**.
 
 ### Verified Scenarios Summary
 
 | Category | Suite | Tests | Result |
 |---|---|:---:|:---:|
-| **API Health & Metadata** | `tests/internships.test.js` | 3 | Pass (100%) |
-| **Internship Listings (GET)** | `tests/internships.test.js` | 8 | Pass (100%) |
-| **Internship Creation (POST)** | `tests/internships.test.js` | 8 | Pass (100%) |
-| **Internship Updates (PUT)** | `tests/internships.test.js` | 4 | Pass (100%) |
-| **Internship Deletion (DELETE)** | `tests/internships.test.js` | 2 | Pass (100%) |
-| **Database Persistence (Task 3)** | `tests/internships.test.js` | 1 | Pass (100%) |
-| **Application Submission (Task 4)** | `tests/applications.test.js` | 9 | Pass (100%) |
-| **Security & Headers (Task 4)** | `tests/applications.test.js` | 5 | Pass (100%) |
-| **Database Persistence (Task 4)** | `tests/applications.test.js` | 1 | Pass (100%) |
-| **TOTAL** | **All Suites** | **41** | **41 / 41 (100%)** |
+| **API Health & Metadata** | `backend/tests/internships.test.js` | 3 | Pass (100%) |
+| **Internship Listings (GET)** | `backend/tests/internships.test.js` | 8 | Pass (100%) |
+| **Internship Creation (POST)** | `backend/tests/internships.test.js` | 8 | Pass (100%) |
+| **Internship Updates (PUT)** | `backend/tests/internships.test.js` | 4 | Pass (100%) |
+| **Internship Deletion (DELETE)** | `backend/tests/internships.test.js` | 2 | Pass (100%) |
+| **Database Persistence (Task 3)** | `backend/tests/internships.test.js` | 1 | Pass (100%) |
+| **Application Submission & Validation** | `backend/tests/applications.test.js` | 11 | Pass (100%) |
+| **Security Headers, CORS, SQLi, Privacy, 429** | `backend/tests/applications.test.js` | 6 | Pass (100%) |
+| **Database Persistence (Task 4)** | `backend/tests/applications.test.js` | 1 | Pass (100%) |
+| **Frontend Env, Fallback, Filters & Validation** | `tests/frontend.test.mjs` | 13 | Pass (100%) |
+| **TOTAL** | **All Automated Suites** | **57** | **57 / 57 (100%)** |
 
 ---
 
-## 11. How to Run the Full-Stack Application Locally
+## 11. How to Run the Full-Stack Application Locally (Windows PowerShell)
 
-### Step 1: Start the Backend REST API
-```bash
+First, open Windows PowerShell and change into your cloned repository folder:
+
+```powershell
+cd path\to\EDVYRO--RESPONSIVE-Internship-
+```
+
+### Terminal 1 — Start the Backend REST API
+```powershell
 cd backend
 npm install
 npm run init-db
 npm start
 ```
-The Express server starts listening at: `http://localhost:5000`
+The Express server starts at `http://localhost:5000` (health check: `http://localhost:5000/api/health`).
 
-### Step 2: Serve the Frontend
-In a separate terminal from the repository root:
-```bash
-# Using Python
+### Terminal 2 — Serve the Frontend
+From the repository root folder:
+```powershell
 python -m http.server 8080
-
-# Or using Node.js
-npx serve -l 8080 .
 ```
-Open your browser to: `http://localhost:8080`
+Open `http://localhost:8080` in your browser. The frontend automatically connects to `http://localhost:5000/api`, loads live SQLite records, and enables persistent application submissions.
 
-The frontend automatically discovers the running local backend at `http://localhost:5000/api`, loads live records, and enables application submissions with rate limiting and database persistence.
+### Run Automated Tests Locally
+From the repository root folder:
+```powershell
+# Run Backend Tests (44 tests)
+cd backend; npm test; cd ..
+
+# Run Frontend Unit Tests (13 tests)
+node --test tests/frontend.test.mjs
+```
 
 ---
 
 ## 12. Deployment & Runtime Notes
 
-1. **Frontend Hosting (GitHub Pages)**:
+1. **Public GitHub Pages Mode**:
    - Live URL: [https://nijjukrr.github.io/EDVYRO--RESPONSIVE-Internship-/](https://nijjukrr.github.io/EDVYRO--RESPONSIVE-Internship-/)
-   - Deployed directly from `main` branch root.
-   - Operates with zero build steps or bundling. When accessed without a local backend running, it gracefully loads verified data from `data/internships.json`.
-2. **Backend API (Local Development)**:
-   - The Node.js Express server and SQLite database are designed for local development and portfolio evaluation (`http://localhost:5000/api`).
-   - All database files (`*.db`) and dependencies (`node_modules`) are strictly excluded from git tracking via `.gitignore`.
+   - Hosts static frontend assets directly from `main`. Because GitHub Pages cannot run Node.js or SQLite, it loads verified records from `/EDVYRO--RESPONSIVE-Internship-/data/internships.json` and displays an honest notification if a user attempts to submit an application without a running backend.
+2. **Local Full-Stack Mode**:
+   - Running the backend locally on port `5000` and the frontend on port `8080` enables full API integration, application submission, SQLite persistence, rate limiting, and Helmet protection.
+   - All runtime SQLite files (`*.db`, `*.db-wal`, `*.db-shm`) and `node_modules` are excluded via `.gitignore`.
 

@@ -32,4 +32,5 @@ CREATE TABLE IF NOT EXISTS applications (
 
 CREATE INDEX IF NOT EXISTS idx_applications_internship_id ON applications(internship_id);
 CREATE INDEX IF NOT EXISTS idx_applications_email ON applications(email);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_applications_unique_role_email ON applications(internship_id, lower(email));
 

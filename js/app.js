@@ -1,4 +1,4 @@
-import { DEFAULT_API_ENDPOINT, loadInternships } from "./data.js";
+import { loadInternships } from "./data.js";
 import { initApplicationModule, openApplicationModal } from "./application.js";
 import {
   applyAllFilters,
@@ -10,6 +10,7 @@ import {
   openInternshipDetails,
   populateSelectOptions,
   renderInternships,
+  resetStatistics,
   showEmptyState,
   showErrorState,
   showLoadingState,
@@ -29,6 +30,8 @@ const appState = {
   allInternships: [],
   filters: { ...INITIAL_FILTER_STATE },
   isLoaded: false,
+  isLoading: false,
+  sourceType: null,
 };
 
 /**
@@ -72,16 +75,19 @@ function updateListingView(dom) {
     dom.resultsCount,
     filtered.length,
     appState.allInternships.length,
-    matchedOpenings
+    matchedOpenings,
+    appState.sourceType
   );
 
   if (filtered.length === 0) {
     const hasSearchQuery = appState.filters.query.trim().length > 0;
+    const hasAnyRecords = appState.allInternships.length > 0;
     showEmptyState(
       dom.resultsContainer,
       hasSearchQuery,
-      () => clearFilters(dom),
-      () => resetSearchOnly(dom)
+      hasAnyRecords ? () => clearFilters(dom) : () => initializeDataset(dom),
+      () => resetSearchOnly(dom),
+      hasAnyRecords
     );
     return;
   }
@@ -129,17 +135,27 @@ export function clearFilters(dom = getDomElements()) {
 
 /**
  * Fetches dataset records and renders initial statistics, filter options, and listings.
+ * Guards against simultaneous overlapping requests and clears stale data on failure.
  */
-async function initializeDataset(dom, dataUrl = DEFAULT_API_ENDPOINT) {
+async function initializeDataset(dom, dataUrl = null) {
+  if (appState.isLoading) {
+    return;
+  }
+
+  appState.isLoading = true;
   appState.isLoaded = false;
+  appState.allInternships = [];
+  appState.sourceType = null;
+
   showLoadingState(dom.resultsContainer);
   if (dom.resultsCount) {
     dom.resultsCount.textContent = "Loading internships...";
   }
 
   try {
-    const { internships } = await loadInternships(dataUrl);
+    const { internships, sourceType } = await loadInternships(dataUrl);
     appState.allInternships = internships;
+    appState.sourceType = sourceType;
     appState.isLoaded = true;
 
     updateStatistics(internships);
@@ -157,16 +173,19 @@ async function initializeDataset(dom, dataUrl = DEFAULT_API_ENDPOINT) {
     updateListingView(dom);
   } catch (error) {
     console.error("[InternBoard] Failed to initialize internship listings:", error);
-    const openingsNote = document.getElementById("stat-openings-note");
-    if (openingsNote) {
-      openingsNote.textContent = "Dataset unavailable";
-    }
+    appState.allInternships = [];
+    appState.isLoaded = false;
+    appState.sourceType = null;
+    resetStatistics();
+
     if (dom.resultsCount) {
       dom.resultsCount.textContent = "Unable to load internship records.";
     }
     showErrorState(dom.resultsContainer, error.message, () => {
       initializeDataset(dom, dataUrl);
     });
+  } finally {
+    appState.isLoading = false;
   }
 }
 

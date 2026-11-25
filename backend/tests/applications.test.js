@@ -12,7 +12,7 @@ const testDbPath = path.join(
 );
 process.env.DATABASE_PATH = testDbPath;
 process.env.NODE_ENV = 'test';
-process.env.RATE_LIMIT_MAX = '20'; // Test threshold of 20 requests
+process.env.RATE_LIMIT_MAX = '25'; // Test threshold of 25 requests
 process.env.RATE_LIMIT_WINDOW_MS = '60000'; // 1 minute window for tests
 
 const { getDb, closeDb, initDatabase } = require('../src/config/database');
@@ -99,6 +99,19 @@ describe('EdVyro Task 4 — Applications API & Security Tests', () => {
       assert.ok(res.body.errors.some((e) => e.field === 'email'));
     });
 
+    it('rejects duplicate application case-insensitively with HTTP 409', async () => {
+      const res = await request(app).post('/api/applications').send({
+        internshipId: 'INT-101',
+        fullName: 'Samantha Miller',
+        email: '  Samantha.Miller@EXAMPLE.COM  ',
+        coverLetter: 'Case variant duplicate attempt.'
+      });
+
+      assert.equal(res.status, 409);
+      assert.equal(res.body.status, 'error');
+      assert.ok(res.body.errors.some((e) => e.field === 'email'));
+    });
+
     it('allows same email to apply to a DIFFERENT internship', async () => {
       const differentInternshipPayload = {
         internshipId: 'INT-103',
@@ -112,6 +125,24 @@ describe('EdVyro Task 4 — Applications API & Security Tests', () => {
       assert.equal(res.status, 201);
       assert.equal(res.body.status, 'success');
       assert.equal(res.body.data.internshipId, 'INT-103');
+    });
+
+    it('rejects missing or empty internship ID with HTTP 400', async () => {
+      const res1 = await request(app).post('/api/applications').send({
+        fullName: 'Robin Vance',
+        email: 'robin@example.com'
+      });
+      assert.equal(res1.status, 400);
+      assert.equal(res1.body.status, 'error');
+      assert.ok(res1.body.errors.some((e) => e.field === 'internshipId'));
+
+      const res2 = await request(app).post('/api/applications').send({
+        internshipId: '   ',
+        fullName: 'Robin Vance',
+        email: 'robin@example.com'
+      });
+      assert.equal(res2.status, 400);
+      assert.ok(res2.body.errors.some((e) => e.field === 'internshipId'));
     });
 
     it('rejects non-existent internship ID with HTTP 404', async () => {
@@ -205,6 +236,26 @@ describe('EdVyro Task 4 — Applications API & Security Tests', () => {
       assert.ok(res.headers['x-dns-prefetch-control'], 'Missing X-DNS-Prefetch-Control header');
     });
 
+    it('applies deliberate CORS allowlist for local/GitHub Pages origins and excludes untrusted origins', async () => {
+      const allowedRes = await request(app)
+        .get('/api/health')
+        .set('Origin', 'http://localhost:8080');
+      assert.equal(allowedRes.status, 200);
+      assert.equal(allowedRes.headers['access-control-allow-origin'], 'http://localhost:8080');
+
+      const ghPagesRes = await request(app)
+        .get('/api/health')
+        .set('Origin', 'https://nijjukrr.github.io');
+      assert.equal(ghPagesRes.status, 200);
+      assert.equal(ghPagesRes.headers['access-control-allow-origin'], 'https://nijjukrr.github.io');
+
+      const untrustedRes = await request(app)
+        .get('/api/health')
+        .set('Origin', 'https://evil.example.org');
+      assert.equal(untrustedRes.status, 200);
+      assert.equal(untrustedRes.headers['access-control-allow-origin'], undefined);
+    });
+
     it('safely handles SQL injection attempts in fullName and email using parameterized queries', async () => {
       const injectionPayload = {
         internshipId: 'INT-105',
@@ -248,17 +299,21 @@ describe('EdVyro Task 4 — Applications API & Security Tests', () => {
       assert.ok(!detailStr.includes('Secret Applicant'), 'Applicant name must not appear in details API');
     });
 
-    it('triggers HTTP 429 Too Many Requests when application rate limit is exceeded', async () => {
-      // Send rapid requests up to and exceeding RATE_LIMIT_MAX (configured to 5 in test environment)
+    it('triggers HTTP 429 Too Many Requests with standard rate-limit headers when exceeded', async () => {
       let rateLimited = false;
       let lastStatus = 200;
+      let sawRateLimitHeaders = false;
 
-      for (let i = 0; i < 15; i++) {
+      for (let i = 0; i < 20; i++) {
         const res = await request(app).post('/api/applications').send({
           internshipId: 'INT-102',
           fullName: `Spam Tester ${i}`,
           email: `spam.${i}.${Date.now()}@example.com`
         });
+
+        if (res.headers['ratelimit-limit'] || res.headers['ratelimit']) {
+          sawRateLimitHeaders = true;
+        }
 
         lastStatus = res.status;
         if (res.status === 429) {
@@ -269,6 +324,7 @@ describe('EdVyro Task 4 — Applications API & Security Tests', () => {
         }
       }
 
+      assert.ok(sawRateLimitHeaders, 'Expected standard RateLimit-* headers on application endpoint');
       assert.ok(rateLimited, `Expected HTTP 429 rate limit to trigger (last status: ${lastStatus})`);
     });
 

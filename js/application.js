@@ -5,6 +5,8 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 let activeAppTriggerElement = null;
 let appKeydownHandlerRef = null;
 let currentInternship = null;
+let lastOpenedInternshipId = null;
+let isSubmitting = false;
 
 /**
  * Validates application form data on the client side.
@@ -63,8 +65,12 @@ function getFocusableElements(container) {
  */
 function clearValidationErrors() {
   const alertBox = document.getElementById("app-form-alert");
+  const alertMsg = document.getElementById("app-form-alert-msg");
   if (alertBox) {
     alertBox.hidden = true;
+  }
+  if (alertMsg) {
+    alertMsg.textContent = "";
   }
 
   const errorIds = [
@@ -157,7 +163,13 @@ export function openApplicationModal(internship, triggerElement = null) {
   // Reset view states
   const form = document.getElementById("application-form");
   const successState = document.getElementById("app-success-state");
-  if (form) form.hidden = false;
+  if (form) {
+    form.hidden = false;
+    if (lastOpenedInternshipId && lastOpenedInternshipId !== internship.id) {
+      form.reset();
+    }
+  }
+  lastOpenedInternshipId = internship.id;
   if (successState) successState.hidden = true;
   clearValidationErrors();
 
@@ -255,6 +267,8 @@ export function closeApplicationModal() {
 async function handleApplicationSubmit(event) {
   event.preventDefault();
 
+  if (isSubmitting) return;
+
   const form = document.getElementById("application-form");
   if (!form) return;
 
@@ -264,11 +278,16 @@ async function handleApplicationSubmit(event) {
 
   clearValidationErrors();
 
+  const rawInternshipId = document.getElementById("app-input-internship-id")?.value || "";
+  const rawFullName = document.getElementById("app-input-full-name")?.value || "";
+  const rawEmail = document.getElementById("app-input-email")?.value || "";
+  const rawCoverLetter = document.getElementById("app-input-cover-letter")?.value || "";
+
   const formData = {
-    internshipId: document.getElementById("app-input-internship-id")?.value || "",
-    fullName: document.getElementById("app-input-full-name")?.value || "",
-    email: document.getElementById("app-input-email")?.value || "",
-    coverLetter: document.getElementById("app-input-cover-letter")?.value || ""
+    internshipId: rawInternshipId,
+    fullName: rawFullName,
+    email: rawEmail,
+    coverLetter: rawCoverLetter
   };
 
   // 1. Client-side validation
@@ -278,20 +297,36 @@ async function handleApplicationSubmit(event) {
     return;
   }
 
-  // 2. Set submitting state (prevent duplicate clicks)
+  // 2. Check environment API availability before making network call
+  const endpoint = getApiEndpoint("/applications");
+  if (!endpoint) {
+    showFormAlert(
+      "Static Demo Mode: GitHub Pages hosts only static frontend files and cannot run the Express API or SQLite database. Your application was not submitted. To submit and save applications, run the backend server locally (http://localhost:5000) and open the local site."
+    );
+    return;
+  }
+
+  // 3. Set submitting state (prevent duplicate clicks)
+  isSubmitting = true;
   if (submitBtn) submitBtn.disabled = true;
   if (btnSpinner) btnSpinner.hidden = false;
   if (btnText) btnText.textContent = "Submitting...";
 
+  const requestBody = {
+    internshipId: rawInternshipId.trim(),
+    fullName: rawFullName.trim(),
+    email: rawEmail.trim(),
+    coverLetter: rawCoverLetter.trim()
+  };
+
   try {
-    const endpoint = getApiEndpoint("/applications");
     const response = await fetch(endpoint, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json"
       },
-      body: JSON.stringify(formData)
+      body: JSON.stringify(requestBody)
     });
 
     let payload = null;
@@ -301,14 +336,21 @@ async function handleApplicationSubmit(event) {
       payload = null;
     }
 
-    if (response.status === 201 && payload && payload.status === "success") {
-      // 3. Success state
+    if (
+      response.status === 201 &&
+      payload &&
+      payload.status === "success" &&
+      payload.data &&
+      typeof payload.data.id === "string" &&
+      payload.data.id.trim().length > 0
+    ) {
+      // 4. Verified success state driven strictly by real backend response
       form.hidden = true;
       const successState = document.getElementById("app-success-state");
       const receiptId = document.getElementById("app-receipt-id");
       const receiptPos = document.getElementById("app-receipt-position");
 
-      if (receiptId) receiptId.textContent = payload.data?.id || "APP-CONFIRMED";
+      if (receiptId) receiptId.textContent = payload.data.id;
       if (receiptPos && currentInternship) {
         receiptPos.textContent = `${currentInternship.title} (${currentInternship.id})`;
       }
@@ -319,10 +361,17 @@ async function handleApplicationSubmit(event) {
 
       // Reset form fields after confirmed submission
       form.reset();
+      const counter = document.getElementById("app-char-counter");
+      if (counter) counter.textContent = "0 / 1000";
       return;
     }
 
-    // 4. Handle Server Validation / Conflict (400, 404, 409, 429)
+    if (response.status === 201) {
+      showFormAlert("Unexpected server response format: missing confirmation ID. Please verify submission status.");
+      return;
+    }
+
+    // 5. Handle Server Validation / Conflict / Rate Limit (400, 404, 409, 429, 500)
     if (payload && payload.errors && Array.isArray(payload.errors) && payload.errors.length > 0) {
       const serverErrors = {};
       payload.errors.forEach((err) => {
@@ -346,7 +395,7 @@ async function handleApplicationSubmit(event) {
       );
     } else {
       showFormAlert(
-        payload?.message || `Server returned error (${response.status} ${response.statusText}). Please check your input and try again.`
+        payload?.message || `Server returned error (${response.status} ${response.statusText || "Error"}). Please check your input and try again.`
       );
     }
   } catch (networkError) {
@@ -355,7 +404,8 @@ async function handleApplicationSubmit(event) {
       "Unable to connect to the backend server. Please verify that the API is running (http://localhost:5000) and try again."
     );
   } finally {
-    // 5. Restore submit button (retaining entered data for retry)
+    // 6. Restore submit button (retaining entered data for retry)
+    isSubmitting = false;
     if (submitBtn) submitBtn.disabled = false;
     if (btnSpinner) btnSpinner.hidden = true;
     if (btnText) btnText.textContent = "Submit Application";

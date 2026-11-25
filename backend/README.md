@@ -544,14 +544,9 @@ Response (`400 Bad Request`):
      - `RATE_LIMIT_MAX`: Max submissions per window per IP (default: `10`).
    - Normal browsing endpoints (`GET /api/internships`, `GET /api/internships/:id`) remain unaffected so honest users can continue exploring listings.
 
-2. **Secure HTTP Headers (`helmet`)**:
-   - Uses `helmet` (v8.1.0) on all Express routes.
-   - Sets security headers:
-     - `X-Content-Type-Options: nosniff` (prevents MIME type sniffing)
-     - `X-Frame-Options: SAMEORIGIN` (mitigates clickjacking)
-     - `X-DNS-Prefetch-Control: off`
-     - `Strict-Transport-Security: max-age=15552000; includeSubDomains`
-     - `Cross-Origin-Resource-Policy: cross-origin` (permits local and hosted frontends to interact with API while isolating malicious contexts)
+2. **Secure HTTP Headers (`helmet`) & Deliberate CORS Allowlist**:
+   - Uses `helmet` (v8.3.0) on all Express routes (`X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, `X-DNS-Prefetch-Control: off`, `Strict-Transport-Security`, `Cross-Origin-Resource-Policy: cross-origin`).
+   - CORS explicitly permits `localhost` / `127.0.0.1` ports, `https://nijjukrr.github.io`, and any origins in `process.env.CORS_ORIGINS`; untrusted external origins are excluded.
 
 3. **Parameterized SQL Queries**:
    - All database reads and writes use `better-sqlite3` prepared statements with positional bind parameters (`?`).
@@ -572,11 +567,11 @@ Response (`400 Bad Request`):
 
 Automated test verification executed via Node.js native test runner (`node --test tests/**/*.test.js`):
 - **Total Test Suites**: 11
-- **Total Tests**: 41
-- **Passed**: 41
+- **Total Tests**: 44
+- **Passed**: 44
 - **Failed**: 0
 - **Skipped**: 0
-- **Duration**: ~740ms
+- **Duration**: ~645ms
 
 ### Breakdown of Verified Test Suites
 
@@ -594,22 +589,25 @@ Automated test verification executed via Node.js native test runner (`node --tes
 11. Delete record (`DELETE /api/internships/:id` -> 200 OK and 404 verification)
 12. Database persistence verification across complete SQLite connection close and reopen
 
-#### Task 4 Tests (15 Tests — All Passing):
+#### Task 4 Tests (18 Tests — All Passing):
 1. `creates a valid application and returns HTTP 201 with predictable envelope`
 2. `creates a valid application with omitted optional cover letter`
 3. `rejects duplicate application (same email for same internship) with HTTP 409`
-4. `allows same email to apply to a DIFFERENT internship`
-5. `rejects non-existent internship ID with HTTP 404`
-6. `rejects missing or empty full name with HTTP 400`
-7. `rejects invalid email formats with HTTP 400`
-8. `rejects cover letter exceeding 1000 characters with HTTP 400`
-9. `rejects unexpected or unsupported payload properties with HTTP 400`
-10. `verifies Helmet secure HTTP headers are present in responses`
-11. `safely handles SQL injection attempts in fullName and email using parameterized queries`
-12. `verifies applicant personal information is NOT leaked through public internship listings`
-13. `triggers HTTP 429 Too Many Requests when application rate limit is exceeded`
-14. `confirms rate limiter does NOT block normal internship browsing`
-15. `persists submitted applications across database connection restarts`
+4. `rejects duplicate application case-insensitively with HTTP 409`
+5. `allows same email to apply to a DIFFERENT internship`
+6. `rejects missing or empty internship ID with HTTP 400`
+7. `rejects non-existent internship ID with HTTP 404`
+8. `rejects missing or empty full name with HTTP 400`
+9. `rejects invalid email formats with HTTP 400`
+10. `rejects cover letter exceeding 1000 characters with HTTP 400`
+11. `rejects unexpected or unsupported payload properties with HTTP 400`
+12. `verifies Helmet secure HTTP headers are present in responses`
+13. `applies deliberate CORS allowlist for local/GitHub Pages origins and excludes untrusted origins`
+14. `safely handles SQL injection attempts in fullName and email using parameterized queries`
+15. `verifies applicant personal information is NOT leaked through public internship listings`
+16. `triggers HTTP 429 Too Many Requests with standard rate-limit headers when exceeded`
+17. `confirms rate limiter does NOT block normal internship browsing`
+18. `persists submitted applications across database connection restarts`
 
 ---
 
@@ -618,6 +616,6 @@ Automated test verification executed via Node.js native test runner (`node --tes
 - **Backend Runtime**: Node.js / Express listening locally on port `5000` (`http://localhost:5000/api`).
 - **Database**: Local file-based SQLite database (`backend/database/internships.db`), excluded from git tracking to prevent leaking local runtime state.
 - **Frontend Integration**:
-  - The static frontend on GitHub Pages ([Live Demo](https://nijjukrr.github.io/EDVYRO--RESPONSIVE-Internship-/)) gracefully falls back to `data/internships.json` if a local backend is not running.
-  - When the backend is running locally at `http://localhost:5000`, the frontend automatically communicates with the Express REST API (`GET /api/internships` and `POST /api/applications`).
+  - The static frontend on GitHub Pages ([Live Demo](https://nijjukrr.github.io/EDVYRO--RESPONSIVE-Internship-/)) detects `nijjukrr.github.io` and loads verified records directly from `/EDVYRO--RESPONSIVE-Internship-/data/internships.json` without triggering failing API requests or false submission receipts.
+  - When the backend is running locally at `http://localhost:5000`, the local frontend communicates directly with the Express REST API (`GET /api/internships` and `POST /api/applications`).
   - The API endpoint can be customized via `window.__API_BASE_URL__` or `localStorage.getItem('INTERNBOARD_API_URL')`.

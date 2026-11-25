@@ -17,11 +17,29 @@ app.use(
 // Parse JSON request bodies
 app.use(express.json({ limit: '1mb' }));
 
-// CORS & Security headers
+// Deliberate CORS policy: allow local development ports, configured CORS_ORIGINS, and GitHub Pages origin
+const LOCAL_ORIGIN_PATTERN = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
+const EXTRA_ALLOWED_ORIGINS = new Set(
+  (process.env.CORS_ORIGINS || '')
+    .split(',')
+    .map((o) => o.trim())
+    .filter(Boolean)
+);
+const STATIC_ALLOWED_ORIGINS = new Set(['https://nijjukrr.github.io', ...EXTRA_ALLOWED_ORIGINS]);
+
+function isOriginPermitted(origin) {
+  if (!origin) return false;
+  return LOCAL_ORIGIN_PATTERN.test(origin) || STATIC_ALLOWED_ORIGINS.has(origin);
+}
+
 app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  const origin = req.headers.origin;
+  if (isOriginPermitted(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Vary', 'Origin');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  }
 
   if (req.method === 'OPTIONS') {
     return res.status(204).end();
