@@ -777,9 +777,9 @@ Duplicate submission attempt returns HTTP `409 Conflict`:
 ## 10. Automated Test Verification & Capstone Evidence
 
 Automated test suites executed via Node.js native test runner:
-- **Backend Suite** (`cd backend; npm test`): **53 / 53 passing (100%)** across 16 suites (`internships.test.js`, `applications.test.js`, `postgres.test.js`).
+- **Backend Suite** (`cd backend; npm test`): **55 / 55 passing (100%)** across 17 suites (`internships.test.js`, `applications.test.js`, `postgres.test.js`, `admin.test.js`).
 - **Frontend Unit Suite** (`node --test tests/frontend.test.mjs`): **18 / 18 passing (100%)** across 7 suites.
-- **Total Automated Tests**: **71 / 71 passing (0 failures, 0 skipped)**.
+- **Total Automated Tests**: **73 / 73 passing (0 failures, 0 skipped)**.
 
 ### Verified Scenarios Summary
 
@@ -792,8 +792,9 @@ Automated test suites executed via Node.js native test runner:
 | **Security Headers, CORS, SQLi, Privacy, 429, Logging** | `backend/tests/applications.test.js` | 7 | Pass (100%) |
 | **Application Persistence (Task 4)** | `backend/tests/applications.test.js` | 1 | Pass (100%) |
 | **PostgreSQL Mode, CRUD, Error Mapping & Migration Safety** | `backend/tests/postgres.test.js` | 5 | Pass (100%) |
+| **Admin Authorization (`ADMIN_API_KEY_HASH` / Fail-Closed)** | `backend/tests/admin.test.js` | 2 | Pass (100%) |
 | **Frontend Routing, Purple/White CSS, Config & Validation** | `tests/frontend.test.mjs` | 18 | Pass (100%) |
-| **TOTAL** | **All Automated Suites** | **71** | **71 / 71 (100%)** |
+| **TOTAL** | **All Automated Suites** | **73** | **73 / 73 (100%)** |
 
 ### Production-Readiness Evidence (`docs/evidence/`)
 - **Security Checklist**: [`docs/evidence/SECURITY_CHECKLIST.md`](./docs/evidence/SECURITY_CHECKLIST.md)
@@ -846,10 +847,11 @@ node --test tests/frontend.test.mjs
 
 1. **Public GitHub Pages + Render + Neon Architecture (Stage 2)**:
    - Live Frontend: [https://nijjukrr.github.io/EDVYRO--RESPONSIVE-Internship-/](https://nijjukrr.github.io/EDVYRO--RESPONSIVE-Internship-/)
+   - Live Render API Health: [https://edvyro-responsive-internship.onrender.com/api/health](https://edvyro-responsive-internship.onrender.com/api/health)
    - Stage 2 Deployment Guide: [`STAGE-2-DEPLOYMENT.md`](./STAGE-2-DEPLOYMENT.md)
    - SQLite-to-Neon Migration Guide: [`DATABASE-MIGRATION.md`](./DATABASE-MIGRATION.md)
    - Render Blueprint: [`render.yaml`](./render.yaml)
-   - Static frontend assets deploy from `main`; setting `<meta name="internboard-api-url">` (or `DEFAULT_PRODUCTION_API_URL` in `js/config.js`) connects GitHub Pages directly to the deployed Render Express API + Neon PostgreSQL database without exposing database credentials.
+   - Static frontend assets deploy from `main`; `<meta name="internboard-api-url">` and `DEFAULT_PRODUCTION_API_URL` connect GitHub Pages directly to `https://edvyro-responsive-internship.onrender.com/api` + Neon PostgreSQL without exposing database credentials. Admin write operations (`POST`/`PUT`/`DELETE /api/internships`) fail closed in production without valid `ADMIN_API_KEY_HASH` / `ADMIN_API_TOKEN`.
 2. **Local Full-Stack Mode**:
    - Running the backend locally without `DATABASE_URL` uses SQLite (`backend/database/internships.db`) for zero-setup development and tests. Setting `DATABASE_URL` connects directly to PostgreSQL.
    - All runtime SQLite files (`*.db`, `*.db-wal`, `*.db-shm`), `.env`, and `node_modules` are excluded via `.gitignore`.

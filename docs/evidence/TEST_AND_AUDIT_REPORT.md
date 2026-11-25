@@ -4,10 +4,11 @@
 
 ### Backend Suite (`cd backend; npm test`)
 - **Runner**: Node.js built-in test runner (`node --test tests/**/*.test.js`) with isolated temporary SQLite databases and parameterized PostgreSQL integration emulator
-- **Result**: **53 / 53 Passed (0 Failed, 0 Skipped)** across 16 suites
+- **Result**: **55 / 55 Passed (0 Failed, 0 Skipped)** across 17 suites
   - `backend/tests/internships.test.js`: 27 passed (Health 200 & 503 DB failure, Root index, 404 handler, Read, Pagination & validation, Create, Update, Delete, Persistence)
   - `backend/tests/applications.test.js`: 21 passed (Valid `201`, Optional cover letter, Unsafe/safe `portfolioUrl`, Duplicate & case-insensitive `409`, Cross-role `201`, Missing `internshipId` `400`, Unknown role `404`, Missing name `400`, Invalid email `400`, Oversized cover letter `400`, Unsupported props `400`, Helmet headers, CORS allowlist, SQLi immunity, Public PII leak check, Rate limit `429` + headers, Unthrottled `GET /api/internships`, Logger PII redaction, Persistence)
   - `backend/tests/postgres.test.js`: 5 passed (Strict production `DATABASE_URL` guard, SSL pool config, Idempotent PG seed & CRUD with JSONB/FK constraints, PG SQLSTATE `23505`/`23503`/`22P02` error mapping, Legacy read-only SQLite migration compatibility)
+  - `backend/tests/admin.test.js`: 2 passed (Constant-time SHA-256 token verification on `POST`/`PUT`/`DELETE /api/internships` + production fail-closed protection)
 
 ### Frontend Unit & Environment Suite (`node --test tests/frontend.test.mjs`)
 - **Runner**: Node.js built-in test runner (`node --test tests/frontend.test.mjs`)

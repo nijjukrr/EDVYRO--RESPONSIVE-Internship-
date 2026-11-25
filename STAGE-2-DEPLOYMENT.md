@@ -73,17 +73,14 @@ This repository includes [`render.yaml`](render.yaml) configured for a Render Bl
 
 ## 4. Connecting GitHub Pages Frontend to Render
 
-Once your Render backend URL is live (for example, `https://internboard-api.onrender.com`), connect the frontend without exposing any database credentials:
+The GitHub Pages frontend ([`index.html`](index.html) and [`js/config.js`](js/config.js)) is preconfigured to connect to the live Render backend API:
 
-1. Open [`index.html`](index.html) and set the meta tag (or `DEFAULT_PRODUCTION_API_URL` in [`js/config.js`](js/config.js)):
-   ```html
-   <meta name="internboard-api-url" content="https://<your-render-service>.onrender.com/api">
-   ```
-2. Commit and push to `main`. GitHub Pages deploys automatically from `/` (root).
-3. Test end-to-end on `https://nijjukrr.github.io/EDVYRO--RESPONSIVE-Internship-/`:
-   - Confirm listings load from Render (`Source: API` / PostgreSQL).
-   - Submit a test application with `fullName`, `email`, optional `portfolioUrl`, and `coverLetter`.
-   - Confirm HTTP `201` receipt and persistence across Render restarts/redeployments.
+```html
+<meta name="internboard-api-url" content="https://edvyro-responsive-internship.onrender.com/api">
+```
+
+- Admin write endpoints (`POST`, `PUT`, `DELETE /api/internships`) require authorization in production (`Authorization: Bearer <token>` or `X-Admin-Token`) verified via SHA-256 constant-time comparison against `ADMIN_API_KEY_HASH` (or `ADMIN_API_TOKEN`) configured in Render Dashboard.
+- Public endpoints (`GET /api/internships`, `GET /api/internships/:id`, `GET /api/health`, `POST /api/applications`) remain accessible without admin credentials.
 
 ---
 
