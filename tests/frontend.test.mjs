@@ -183,15 +183,17 @@ describe('EdVyro Task 4 — Frontend Unit & Environment Tests', () => {
   });
 
   describe('Two-Page Architecture & Monochrome Design Integrity', () => {
-    it('verifies landing page links cleanly to ./internships/ and resolves dataset under /internships/', () => {
+    it('verifies landing page links cleanly to ./internships/, removes logoipsum, and resolves dataset under /internships/', () => {
       const landingHtml = fs.readFileSync(path.join(ROOT_DIR, 'index.html'), 'utf8');
       assert.ok(landingHtml.includes('The Next Layer<br>of Intelligence'));
       assert.ok(landingHtml.includes('href="./internships/"'));
       assert.ok(landingHtml.includes('da9d53df-6d27-4b12-bdf6-aa9dc2622bdf.mp4'));
+      assert.equal(/logoipsum/i.test(landingHtml), false, 'Landing page must not contain logoipsum text');
 
       const portalHtml = fs.readFileSync(path.join(ROOT_DIR, 'internships', 'index.html'), 'utf8');
       assert.ok(portalHtml.includes('src="../js/app.js"'));
       assert.ok(portalHtml.includes('href="../css/style.css"'));
+      assert.ok(portalHtml.includes('id="theme-toggle"'));
 
       assert.equal(
         getStaticDatasetUrl({
@@ -202,9 +204,11 @@ describe('EdVyro Task 4 — Frontend Unit & Environment Tests', () => {
       );
     });
 
-    it('verifies monochrome portal CSS contains zero leftover purple/indigo hex codes', () => {
+    it('verifies monochrome & Watermelon Green+Black CSS contains zero leftover purple/indigo hex codes', () => {
       const css = fs.readFileSync(path.join(ROOT_DIR, 'css', 'style.css'), 'utf8');
       assert.equal(/#4f46e5|#4338ca|#eef2ff|#c7d2fe|#2563eb/i.test(css), false);
+      assert.ok(css.includes('[data-theme="watermelon"]'));
+      assert.ok(css.includes('#22c55e'));
     });
   });
 

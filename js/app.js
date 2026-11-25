@@ -324,6 +324,53 @@ function setupEventListeners(dom) {
 }
 
 /**
+ * Initializes the Watermelon (Green & Black) theme toggle inside the portal.
+ */
+function setupThemeToggle() {
+  const toggleBtn = document.getElementById("theme-toggle");
+  const toggleLabel = document.getElementById("theme-toggle-label");
+  if (!toggleBtn) return;
+
+  const applyTheme = (theme) => {
+    const isWatermelon = theme === "watermelon";
+    if (isWatermelon) {
+      document.documentElement.setAttribute("data-theme", "watermelon");
+    } else {
+      document.documentElement.removeAttribute("data-theme");
+    }
+    toggleBtn.setAttribute("aria-pressed", String(isWatermelon));
+    toggleBtn.setAttribute(
+      "aria-label",
+      isWatermelon ? "Switch to Classic Light mode" : "Switch to Watermelon Green and Black mode"
+    );
+    if (toggleLabel) {
+      toggleLabel.textContent = isWatermelon ? "Light Mode" : "Watermelon Mode";
+    }
+  };
+
+  let savedTheme = "light";
+  try {
+    if (localStorage.getItem("INTERNBOARD_THEME") === "watermelon") {
+      savedTheme = "watermelon";
+    }
+  } catch {
+    // Ignore storage restriction
+  }
+  applyTheme(savedTheme);
+
+  toggleBtn.addEventListener("click", () => {
+    const currentlyWatermelon = document.documentElement.getAttribute("data-theme") === "watermelon";
+    const nextTheme = currentlyWatermelon ? "light" : "watermelon";
+    applyTheme(nextTheme);
+    try {
+      localStorage.setItem("INTERNBOARD_THEME", nextTheme);
+    } catch {
+      // Ignore storage restriction
+    }
+  });
+}
+
+/**
  * Bootstraps InternBoard when the DOM is ready.
  */
 function init() {
@@ -333,6 +380,7 @@ function init() {
     dom.footerYear.textContent = String(new Date().getFullYear());
   }
 
+  setupThemeToggle();
   setupNavigation(dom);
   setupEventListeners(dom);
   initApplicationModule();

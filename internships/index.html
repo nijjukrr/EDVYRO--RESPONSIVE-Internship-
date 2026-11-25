@@ -11,6 +11,13 @@
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../css/style.css">
   <link rel="stylesheet" href="../css/responsive.css">
+  <script>
+    try {
+      if (localStorage.getItem('INTERNBOARD_THEME') === 'watermelon') {
+        document.documentElement.setAttribute('data-theme', 'watermelon');
+      }
+    } catch (e) {}
+  </script>
 </head>
 <body>
   <a href="#main-content" class="skip-link">Skip to main content</a>
@@ -48,7 +55,25 @@
           <li><a href="#faq" class="nav-link">FAQ</a></li>
           <li><a href="#contact" class="nav-link">Contact</a></li>
         </ul>
-        <a href="#internships" class="btn btn-primary nav-cta">Explore Opportunities</a>
+        <div class="nav-actions">
+          <button
+            type="button"
+            class="btn btn-ghost btn-sm theme-toggle-btn"
+            id="theme-toggle"
+            aria-pressed="false"
+            aria-label="Toggle Watermelon Green and Black theme"
+          >
+            <svg class="theme-watermelon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M3 10C3 14.9706 7.02944 19 12 19C16.9706 19 21 14.9706 21 10H3Z" fill="#22C55E" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" />
+              <path d="M6 10C6 13.3137 8.68629 16 12 16C15.3137 16 18 13.3137 18 10H6Z" fill="#FB7185" />
+              <circle cx="10" cy="12" r="0.9" fill="#050505" />
+              <circle cx="14" cy="12" r="0.9" fill="#050505" />
+              <circle cx="12" cy="14" r="0.9" fill="#050505" />
+            </svg>
+            <span id="theme-toggle-label">Watermelon Mode</span>
+          </button>
+          <a href="#internships" class="btn btn-primary nav-cta">Explore Opportunities</a>
+        </div>
       </div>
     </nav>
   </header>

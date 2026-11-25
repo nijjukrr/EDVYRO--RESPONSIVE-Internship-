@@ -302,7 +302,7 @@
       flex: 1 1 auto;
       display: flex;
       align-items: center;
-      padding-block: clamp(2.5rem, 6vh, 4.5rem);
+      padding-block: clamp(3rem, 8vh, 6rem) clamp(4rem, 10vh, 7rem);
     }
 
     .hero-copy {
@@ -386,40 +386,6 @@
       border-color: rgba(255, 255, 255, 0.65);
     }
 
-    /* Monochrome Partner Placeholder Strip */
-    .partner-footer {
-      position: relative;
-      z-index: 2;
-      padding-block: 1.75rem 2.25rem;
-      opacity: 0;
-      transform: translateY(8px);
-      animation: fadeUp 520ms var(--ease-cinematic) 240ms forwards;
-    }
-
-    .partner-strip {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      align-items: center;
-      gap: 1.5rem 2rem;
-      padding-top: 1.5rem;
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .partner-mark {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.55rem;
-      color: var(--text-muted);
-      font-size: 0.9375rem;
-      font-weight: 500;
-      letter-spacing: -0.02em;
-      user-select: none;
-    }
-
-    .partner-mark svg {
-      flex-shrink: 0;
-    }
-
     @keyframes fadeUp {
       to {
         opacity: 1;
@@ -456,7 +422,7 @@
 
       .hero-stage {
         align-items: flex-end;
-        padding-block: 3rem 2rem;
+        padding-block: 3rem 3.5rem;
       }
 
       .hero-actions {
@@ -468,11 +434,6 @@
       .btn-cta-secondary {
         width: 100%;
       }
-
-      .partner-strip {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 1rem 1.25rem;
-      }
     }
 
     /* Respect Reduced Motion */
@@ -482,8 +443,7 @@
       .header-cta,
       .hero-headline,
       .hero-subhead,
-      .hero-actions,
-      .partner-footer {
+      .hero-actions {
         opacity: 1;
         transform: none;
         animation: none;
@@ -591,45 +551,6 @@
         </div>
       </div>
     </main>
-
-    <!-- Monochrome Placeholder Partner Strip -->
-    <footer class="partner-footer" aria-label="Ecosystem placeholder marks">
-      <div class="container">
-        <div class="partner-strip">
-          <div class="partner-mark" aria-hidden="true">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.8" />
-              <circle cx="12" cy="12" r="3" fill="currentColor" />
-            </svg>
-            <span>logoipsum</span>
-          </div>
-
-          <div class="partner-mark" aria-hidden="true">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <rect x="4" y="4" width="7" height="7" rx="1.5" fill="currentColor" />
-              <rect x="13" y="13" width="7" height="7" rx="1.5" fill="currentColor" />
-              <rect x="13" y="4" width="7" height="7" rx="3.5" stroke="currentColor" stroke-width="1.8" />
-            </svg>
-            <span>logoipsum.</span>
-          </div>
-
-          <div class="partner-mark" aria-hidden="true">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path d="M12 3L21 19H3L12 3Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" />
-            </svg>
-            <span>logoipsum</span>
-          </div>
-
-          <div class="partner-mark" aria-hidden="true">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path d="M4 12H20M12 4V20" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-              <circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.8" />
-            </svg>
-            <span>logoipsum</span>
-          </div>
-        </div>
-      </div>
-    </footer>
   </div>
 
   <script>
