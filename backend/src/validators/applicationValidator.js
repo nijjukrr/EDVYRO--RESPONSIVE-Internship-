@@ -5,7 +5,7 @@ const MAX_PORTFOLIO_URL_LENGTH = 2048;
 /** Accept only absolute HTTP(S) URLs without embedded credentials. */
 function isSafeHttpUrl(value) {
   if (typeof value !== 'string' || !value.trim() || value.length > MAX_PORTFOLIO_URL_LENGTH) return false;
-  if (/[\\s\\u0000-\\u001F\\u007F]/.test(value) || value.startsWith('//') || value.includes('\\\\')) return false;
+  if (/[\s\u0000-\u001F\u007F]/.test(value) || value.startsWith('//') || value.includes('\\')) return false;
   try {
     const parsed = new URL(value);
     return (parsed.protocol === 'https:' || parsed.protocol === 'http:') &&
