@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="InternBoard — A responsive, accessible internship listing platform built with HTML5, CSS3, and Vanilla JavaScript.">
+  <title>InternBoard — Responsive Internship Board</title>
+  <link rel="icon" type="image/svg+xml" href="./assets/images/logo.svg">
+  <link rel="stylesheet" href="./css/style.css">
+  <link rel="stylesheet" href="./css/responsive.css">
+</head>
+<body>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+
+  <!-- Sticky Navigation Bar -->
+  <header class="site-header" id="site-header">
+    <nav class="navbar container" aria-label="Primary navigation">
+      <a href="#home" class="brand" aria-label="InternBoard Home">
+        <img src="./assets/images/logo.svg" alt="" class="brand-logo" width="36" height="36" aria-hidden="true">
+        <span class="brand-name">InternBoard</span>
+      </a>
+
+      <button
+        type="button"
+        class="nav-toggle"
+        id="nav-toggle"
+        aria-expanded="false"
+        aria-controls="primary-nav-menu"
+        aria-label="Open navigation menu"
+      >
+        <span class="nav-toggle-bar" aria-hidden="true"></span>
+        <span class="nav-toggle-bar" aria-hidden="true"></span>
+        <span class="nav-toggle-bar" aria-hidden="true"></span>
+      </button>
+
+      <div class="nav-menu" id="primary-nav-menu">
+        <ul class="nav-links">
+          <li><a href="#home" class="nav-link">Home</a></li>
+          <li><a href="#internships" class="nav-link">Explore Internships</a></li>
+          <li><a href="#about" class="nav-link">About</a></li>
+          <li><a href="#contact" class="nav-link">Contact</a></li>
+        </ul>
+        <a href="#internships" class="btn btn-primary nav-cta">Explore Opportunities</a>
+      </div>
+    </nav>
+  </header>
+
+  <main id="main-content">
+    <!-- Hero Section -->
+    <section class="hero-section" id="home" aria-labelledby="hero-heading">
+      <div class="container hero-grid">
+        <div class="hero-content">
+          <p class="hero-eyebrow">EdVyro Internship Discovery Portal</p>
+          <h1 id="hero-heading" class="hero-title">
+            Find Your Next Internship. Build Your Future.
+          </h1>
+          <p class="hero-description">
+            Discover opportunities, explore career paths, and gain practical experience through internships designed to help you grow.
+          </p>
+
+          <form class="hero-search-form" id="hero-search-form" role="search" aria-label="Quick internship search">
+            <label for="hero-search-input" class="sr-only">
+              Search internships by title, company, domain, or skills
+            </label>
+            <div class="hero-search-group">
+              <svg class="search-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" aria-hidden="true">
+                <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"></circle>
+                <path d="M16.5 16.5L21 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
+              </svg>
+              <input
+                type="search"
+                id="hero-search-input"
+                class="hero-search-input"
+                name="q"
+                placeholder="Search by role, domain, or skill (e.g. JavaScript, SQL)..."
+                autocomplete="off"
+              >
+              <button type="submit" class="btn btn-primary hero-search-btn">Search</button>
+            </div>
+          </form>
+
+          <div class="hero-actions">
+            <a href="#internships" class="btn btn-secondary">Explore Internships</a>
+            <a href="#about" class="btn btn-ghost">How It Works</a>
+          </div>
+
+          <dl class="hero-mini-stats" aria-label="Live dataset summary">
+            <div class="hero-mini-stat">
+              <dt>Active Listings</dt>
+              <dd id="hero-stat-total">—</dd>
+            </div>
+            <div class="hero-mini-stat">
+              <dt>Total Openings</dt>
+              <dd id="hero-stat-openings">—</dd>
+            </div>
+            <div class="hero-mini-stat">
+              <dt>Domains</dt>
+              <dd id="hero-stat-domains">—</dd>
+            </div>
+          </dl>
+        </div>
+
+        <div class="hero-visual">
+          <img
+            src="./assets/images/hero-illustration.svg"
+            alt="Illustration showing an internship search bar, skill tags, domain filters, and career progress chart"
+            class="hero-illustration"
+            width="520"
+            height="400"
+          >
+        </div>
+      </div>
+    </section>
+
+    <!-- Dynamic Statistics Section -->
+    <section class="stats-section" id="statistics" aria-labelledby="stats-heading">
+      <div class="container">
+        <h2 id="stats-heading" class="sr-only">Internship Statistics</h2>
+        <div class="stats-grid">
+          <article class="stat-card">
+            <div class="stat-icon stat-icon-indigo" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
+                <rect x="3" y="7" width="18" height="13" rx="2" stroke="currentColor" stroke-width="2"></rect>
+                <path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="currentColor" stroke-width="2"></path>
+              </svg>
+            </div>
+            <div class="stat-body">
+              <p class="stat-label">Total Internships</p>
+              <p class="stat-value" id="stat-total">—</p>
+              <p class="stat-subtext" id="stat-openings-note">Loading records...</p>
+            </div>
+          </article>
+
+          <article class="stat-card">
+            <div class="stat-icon stat-icon-blue" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
+                <path d="M4 6h16M4 12h10M4 18h7" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
+                <circle cx="18" cy="15" r="3" stroke="currentColor" stroke-width="2"></circle>
+              </svg>
+            </div>
+            <div class="stat-body">
+              <p class="stat-label">Available Domains</p>
+              <p class="stat-value" id="stat-domains">—</p>
+              <p class="stat-subtext" id="stat-domains-note">Across current dataset</p>
+            </div>
+          </article>
+
+          <article class="stat-card">
+            <div class="stat-icon stat-icon-emerald" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
+                <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"></circle>
+                <path d="M3.5 12h17M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" stroke="currentColor" stroke-width="1.8"></path>
+              </svg>
+            </div>
+            <div class="stat-body">
+              <p class="stat-label">Remote Opportunities</p>
+              <p class="stat-value" id="stat-remote">—</p>
+              <p class="stat-subtext" id="stat-remote-note">Work-from-anywhere roles</p>
+            </div>
+          </article>
+
+          <article class="stat-card">
+            <div class="stat-icon stat-icon-amber" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
+                <path d="M12 2v20M17 6.5c0-1.9-2.2-3.5-5-3.5s-5 1.6-5 3.5S9.2 10 12 10s5 1.6 5 3.5S14.8 17 12 17s-5-1.6-5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
+              </svg>
+            </div>
+            <div class="stat-body">
+              <p class="stat-label">Paid Opportunities</p>
+              <p class="stat-value" id="stat-paid">—</p>
+              <p class="stat-subtext" id="stat-paid-note">Calculated from dataset</p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Internship Listing Section -->
+    <section class="listings-section" id="internships" aria-labelledby="listings-heading">
+      <div class="container">
+        <div class="section-header">
+          <div>
+            <h2 id="listings-heading" class="section-title">Explore Internship Opportunities</h2>
+            <p class="section-subtitle">
+              Filter by domain, work mode, stipend status, or keyword to find roles matching your skills.
+            </p>
+          </div>
+        </div>
+
+        <!-- Search and Filter Controls -->
+        <div class="controls-panel" role="region" aria-label="Search and filter controls">
+          <div class="controls-grid">
+            <div class="control-group control-search">
+              <label for="search-input" class="control-label">Search Internships</label>
+              <div class="input-with-icon">
+                <svg class="input-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
+                  <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"></circle>
+                  <path d="M16.5 16.5L21 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
+                </svg>
+                <input
+                  type="search"
+                  id="search-input"
+                  class="control-input"
+                  placeholder="Title, company, skill, domain, location..."
+                  autocomplete="off"
+                >
+              </div>
+            </div>
+
+            <div class="control-group">
+              <label for="domain-filter" class="control-label">Domain</label>
+              <select id="domain-filter" class="control-select">
+                <option value="all">All Domains</option>
+              </select>
+            </div>
+
+            <div class="control-group">
+              <label for="mode-filter" class="control-label">Work Mode</label>
+              <select id="mode-filter" class="control-select">
+                <option value="all">All Modes</option>
+                <option value="Remote">Remote</option>
+                <option value="Hybrid">Hybrid</option>
+                <option value="On-site">On-site</option>
+              </select>
+            </div>
+
+            <div class="control-group">
+              <label for="stipend-filter" class="control-label">Stipend</label>
+              <select id="stipend-filter" class="control-select">
+                <option value="all">All Stipends</option>
+                <option value="paid">Paid</option>
+                <option value="unpaid">Unpaid</option>
+                <option value="unspecified">Not Specified</option>
+              </select>
+            </div>
+
+            <div class="control-group">
+              <label for="sort-select" class="control-label">Sort By</label>
+              <select id="sort-select" class="control-select">
+                <option value="default">Default Order</option>
+                <option value="title-asc">Title (A–Z)</option>
+                <option value="title-desc">Title (Z–A)</option>
+                <option value="openings-desc">Openings (High to Low)</option>
+                <option value="openings-asc">Openings (Low to High)</option>
+                <option value="domain-asc">Domain (A–Z)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="controls-footer">
+            <div class="results-meta" aria-live="polite" aria-atomic="true">
+              <p id="results-count" class="results-count">Loading internships...</p>
+            </div>
+            <button type="button" id="clear-filters-btn" class="btn btn-ghost btn-sm">
+              Clear Filters
+            </button>
+          </div>
+        </div>
+
+        <!-- Cards Grid / Empty / Error / Loading Container -->
+        <div id="internship-results" class="internship-results">
+          <div class="loading-state" role="status" aria-live="polite">
+            <div class="spinner" aria-hidden="true"></div>
+            <p>Loading internship opportunities...</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- About Section -->
+    <section class="about-section" id="about" aria-labelledby="about-heading">
+      <div class="container">
+        <div class="about-header">
+          <p class="section-eyebrow">About InternBoard</p>
+          <h2 id="about-heading" class="section-title">Your Career Journey Starts Here.</h2>
+          <p class="about-lead">
+            InternBoard is designed to help students explore structured internship opportunities, identify required technical skills, and understand role formats across domains without visual clutter.
+          </p>
+        </div>
+
+        <div class="about-grid">
+          <article class="about-card">
+            <div class="about-icon" aria-hidden="true">01</div>
+            <h3 class="about-card-title">Skill-Focused Discovery</h3>
+            <p class="about-card-text">
+              Quickly scan required technologies, tools, and domain expectations for each internship so you can plan your learning path effectively.
+            </p>
+          </article>
+
+          <article class="about-card">
+            <div class="about-icon" aria-hidden="true">02</div>
+            <h3 class="about-card-title">Transparent Information</h3>
+            <p class="about-card-text">
+              Every listing reflects only verified dataset records. Fields omitted by the source dataset are clearly marked rather than guessed or fabricated.
+            </p>
+          </article>
+
+          <article class="about-card">
+            <div class="about-icon" aria-hidden="true">03</div>
+            <h3 class="about-card-title">Keyboard &amp; Screen-Reader Ready</h3>
+            <p class="about-card-text">
+              Built with semantic HTML5, clear focus indicators, accessible form labels, and full keyboard support across mobile, tablet, and desktop screens.
+            </p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="contact-section" id="contact" aria-labelledby="contact-heading">
+      <div class="container">
+        <div class="contact-card">
+          <div class="contact-content">
+            <p class="section-eyebrow">Contact &amp; Project Links</p>
+            <h2 id="contact-heading" class="section-title">Questions or Feedback?</h2>
+            <p class="contact-text">
+              This project was created as Task 2 for the EdVyro Full Stack Development Internship using pure HTML5, CSS3, and Vanilla JavaScript (ES6+).
+            </p>
+          </div>
+          <div class="contact-details">
+            <div class="contact-item">
+              <span class="contact-label">Contact Email (Placeholder)</span>
+              <a href="mailto:contact@internboard.example" class="contact-link">contact@internboard.example</a>
+            </div>
+            <div class="contact-item">
+              <span class="contact-label">Source Repository</span>
+              <a
+                href="https://github.com/nijjukrr/EDVYRO--RESPONSIVE-Internship-"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="contact-link"
+              >
+                github.com/nijjukrr/EDVYRO--RESPONSIVE-Internship-
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div class="footer-brand">
+        <a href="#home" class="brand footer-logo-link">
+          <img src="./assets/images/logo.svg" alt="" class="brand-logo" width="32" height="32" aria-hidden="true">
+          <span class="brand-name">InternBoard</span>
+        </a>
+        <p class="footer-description">
+          A clean, accessible internship discovery board built with semantic HTML, modern CSS, and modular ES6+ JavaScript.
+        </p>
+      </div>
+
+      <div class="footer-col">
+        <h3 class="footer-heading">Navigation</h3>
+        <ul class="footer-list">
+          <li><a href="#home">Home</a></li>
+          <li><a href="#internships">Explore Internships</a></li>
+          <li><a href="#about">About</a></li>
+          <li><a href="#contact">Contact</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h3 class="footer-heading">Project &amp; Contact</h3>
+        <ul class="footer-list">
+          <li><span>Email: contact@internboard.example (placeholder)</span></li>
+          <li>
+            <a
+              href="https://github.com/nijjukrr/EDVYRO--RESPONSIVE-Internship-"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              GitHub Repository
+            </a>
+          </li>
+          <li><span>Dataset: EdVyro Sample Records</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="container footer-bottom">
+      <p class="copyright">
+        &copy; <span id="footer-year">2026</span> InternBoard. Portfolio project built for EdVyro Full Stack Development Internship &ndash; Task 2.
+      </p>
+    </div>
+  </footer>
+
+  <!-- Internship Details Modal -->
+  <div
+    class="modal-overlay"
+    id="internship-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="modal-title"
+    aria-describedby="modal-description"
+    hidden
+  >
+    <div class="modal-backdrop" data-modal-close></div>
+    <div class="modal-dialog" role="document">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-badges">
+            <span class="badge badge-id" id="modal-id"></span>
+            <span class="badge badge-domain" id="modal-domain"></span>
+            <span class="badge badge-mode" id="modal-mode"></span>
+          </div>
+          <h2 id="modal-title" class="modal-title"></h2>
+          <p id="modal-company" class="modal-company"></p>
+        </div>
+        <button
+          type="button"
+          class="modal-close-icon"
+          id="modal-close-top"
+          aria-label="Close internship details"
+        >
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" aria-hidden="true">
+            <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"></path>
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <dl class="modal-meta-grid" aria-label="Internship key facts">
+          <div class="modal-meta-item">
+            <dt>Location</dt>
+            <dd id="modal-location"></dd>
+          </div>
+          <div class="modal-meta-item">
+            <dt>Work Mode</dt>
+            <dd id="modal-work-mode"></dd>
+          </div>
+          <div class="modal-meta-item">
+            <dt>Openings</dt>
+            <dd id="modal-openings"></dd>
+          </div>
+          <div class="modal-meta-item">
+            <dt>Duration</dt>
+            <dd id="modal-duration"></dd>
+          </div>
+          <div class="modal-meta-item">
+            <dt>Stipend</dt>
+            <dd id="modal-stipend"></dd>
+          </div>
+          <div class="modal-meta-item">
+            <dt>Eligibility</dt>
+            <dd id="modal-eligibility"></dd>
+          </div>
+        </dl>
+
+        <section class="modal-section" aria-labelledby="modal-desc-heading">
+          <h3 id="modal-desc-heading" class="modal-section-title">Description</h3>
+          <p id="modal-description" class="modal-section-text"></p>
+        </section>
+
+        <section class="modal-section" aria-labelledby="modal-resp-heading">
+          <h3 id="modal-resp-heading" class="modal-section-title">Responsibilities</h3>
+          <div id="modal-responsibilities" class="modal-section-text"></div>
+        </section>
+
+        <section class="modal-section" aria-labelledby="modal-skills-heading">
+          <h3 id="modal-skills-heading" class="modal-section-title">Required Skills</h3>
+          <ul id="modal-skills" class="skill-tags"></ul>
+        </section>
+
+        <section class="modal-section modal-application-box" aria-labelledby="modal-apply-heading">
+          <h3 id="modal-apply-heading" class="modal-section-title">Application Information</h3>
+          <div id="modal-application" class="modal-section-text"></div>
+        </section>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" id="modal-close-bottom">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>
