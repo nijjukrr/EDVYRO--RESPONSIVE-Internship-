@@ -18,9 +18,9 @@
 3. **[1:05 – 1:35] Application Form, Client/Server Validation & Duplicate Protection**
    - Click **Apply Now** on `INT-102` (API Engineering Intern).
    - First submit an invalid email (`nijju123`) or empty Full Name to show immediate accessible inline validation (`aria-invalid`).
-   - Enter valid candidate info and submit -> show `HTTP 201` confirmation receipt with server-generated `APP-...` ID.
+   - Enter valid candidate info, including an optional HTTPS portfolio URL, and submit -> show `HTTP 201` confirmation receipt with server-generated `APP-...` ID. Briefly show that `javascript:` or `data:` portfolio URLs are rejected server-side.
    - Re-open `INT-102` and submit the same email again -> show server `HTTP 409 Conflict` duplicate protection without erasing entered text.
 
 4. **[1:35 – 2:00] Health Check, Security & Test Evidence**
    - Open `http://localhost:5000/api/health` showing `service: "InternBoard API"`, `api: "running"`, `database: "connected"`.
-   - Show terminal running `cd backend; npm test` (`46/46` passing) and `node --test tests/frontend.test.mjs` (`16/16` passing), highlighting Helmet headers, `express-rate-limit` (`429`), parameterized SQL queries, and PII-redacted structured logs.
+   - Show terminal running `cd backend; npm test` and capture the actual current result (the Task-4 extension adds two backend URL-validation tests). Show `node --test tests/frontend.test.mjs` (`17/17` passing), highlighting Helmet headers, `express-rate-limit` (`429`), parameterized SQL queries, and PII-redacted structured logs.
