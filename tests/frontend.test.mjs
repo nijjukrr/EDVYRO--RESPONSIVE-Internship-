@@ -315,10 +315,19 @@ describe('EdVyro Task 4 — Frontend Unit & Environment Tests', () => {
         internshipId: 'INT-101',
         fullName: 'Aarav Mehta',
         email: 'aarav.mehta@example.com',
+        portfolioUrl: 'https://github.com/aarav-mehta',
         coverLetter: 'Excited to contribute to the frontend team.'
       });
       assert.equal(validRes.isValid, true);
       assert.deepEqual(validRes.errors, {});
+    });
+
+    it('rejects unsafe portfolio URL schemes and credential-bearing URLs', () => {
+      for (const portfolioUrl of ['javascript:alert(1)', 'data:text/html,unsafe', 'file:///etc/passwd', '//attacker.example/path', 'https://user:password@example.com', 'not-a-url']) {
+        const result = validateApplicationClient({ internshipId: 'INT-101', fullName: 'Aarav Mehta', email: 'aarav.mehta@example.com', portfolioUrl });
+        assert.equal(result.isValid, false, `Expected rejection for ${portfolioUrl}`);
+        assert.ok(result.errors.portfolioUrl);
+      }
     });
   });
 });
