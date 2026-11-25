@@ -223,9 +223,421 @@ git push origin main
 
 ---
 
-## 14. Future Improvements
+## 15. Future Improvements
 
 - Add pagination or lazy loading if the dataset grows to hundreds of listings.
 - Support bookmarking/saving favorite internships in `localStorage`.
 - Add URL query parameter synchronization so filtered views can be shared directly via link.
 - Add optional dark mode toggle using CSS custom properties.
+
+---
+
+# Task 3 — REST API and Persistent Data
+
+## 1. Backend Overview
+
+EdVyro Task 3 expands the InternBoard project with a production-structured backend built in **Node.js** and **Express.js**, backed by a persistent **SQLite** database (`backend/database/internships.db`).
+
+The API provides full CRUD capabilities, pagination, centralized input validation, parameterized SQL statements, and strict JSON response contracts across all endpoints.
+
+---
+
+## 2. Technology Stack
+
+- **Runtime**: Node.js (v18.0.0+)
+- **Backend Framework**: Express.js (v4.21+)
+- **Database Engine**: SQLite 3 (file-based persistent storage)
+- **Database Driver**: `better-sqlite3` (synchronous, high-performance, parameterized SQL)
+- **Configuration**: `dotenv`
+- **Testing Framework**: Node.js native test runner (`node:test`, `node:assert/strict`) and `supertest`
+
+---
+
+## 3. Database Schema
+
+The database table `internships` is defined in [`backend/database/schema.sql`](backend/database/schema.sql):
+
+```sql
+PRAGMA foreign_keys = ON;
+
+CREATE TABLE IF NOT EXISTS internships (
+  id TEXT PRIMARY KEY NOT NULL CHECK(length(trim(id)) > 0),
+  title TEXT NOT NULL CHECK(length(trim(title)) > 0),
+  domain TEXT NOT NULL CHECK(length(trim(domain)) > 0),
+  mode TEXT NOT NULL CHECK(mode IN ('Remote', 'Hybrid', 'On-site')),
+  location TEXT NOT NULL CHECK(length(trim(location)) > 0),
+  skills TEXT NOT NULL CHECK(json_valid(skills)),
+  openings INTEGER NOT NULL CHECK(openings >= 0),
+  created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+  updated_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP)
+);
+
+CREATE INDEX IF NOT EXISTS idx_internships_domain ON internships(domain);
+CREATE INDEX IF NOT EXISTS idx_internships_mode ON internships(mode);
+```
+
+### Table Columns & Constraints
+- **`id`** (`TEXT PRIMARY KEY`): Unique non-empty string identifier (e.g. `INT-101`).
+- **`title`** (`TEXT NOT NULL`): Role title (cannot be empty or whitespace).
+- **`domain`** (`TEXT NOT NULL`): Technical track/domain.
+- **`mode`** (`TEXT NOT NULL`): Allowed values: `'Remote'`, `'Hybrid'`, or `'On-site'`.
+- **`location`** (`TEXT NOT NULL`): Location string (e.g. `India`, `Pune`, `Bengaluru`).
+- **`skills`** (`TEXT NOT NULL`): Valid JSON array in SQLite, parsed into a native array for API clients.
+- **`openings`** (`INTEGER NOT NULL`): Non-negative integer (`>= 0`).
+- **`created_at`** / **`updated_at`** (`TEXT NOT NULL`): UTC timestamps automatically managed with `CURRENT_TIMESTAMP`.
+
+---
+
+## 4. Official Seed Records (Preserved Data)
+
+The seed script strictly preserves the five official EdVyro sample records:
+
+| ID | Title | Domain | Work Mode | Location | Openings | Skills |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| `INT-101` | Frontend Intern | Full Stack Development | Remote | India | 3 | HTML, CSS, JavaScript |
+| `INT-102` | API Engineering Intern | Full Stack Development | Hybrid | Pune | 2 | Node.js, SQL, Testing |
+| `INT-103` | UI/UX Intern | UI/UX | Remote | India | 1 | Figma, Research, Accessibility |
+| `INT-104` | Data Analyst Intern | Data Analytics | On-site | Bengaluru | 2 | Excel, SQL, Data visualisation |
+| `INT-105` | Security Operations Intern | Cyber Security | Remote | India | 1 | Linux, Logs, Networking |
+
+The seed script (`backend/database/seed.js`) is **safe to rerun**: it uses idempotent checks (`SELECT id FROM internships WHERE id = ?`) so it never creates duplicates or silently overwrites user modifications.
+
+---
+
+## 5. Backend Folder Structure
+
+```text
+backend/
+├── src/
+│   ├── config/
+│   │   └── database.js          # SQLite connection and migration runner
+│   ├── controllers/
+│   │   └── internshipController.js # HTTP request/response handlers
+│   ├── middleware/
+│   │   ├── errorHandler.js      # Centralized error responses
+│   │   └── validateRequest.js   # Request validation middleware
+│   ├── routes/
+│   │   └── internshipRoutes.js  # REST endpoint definitions
+│   ├── services/
+│   │   └── internshipService.js # Business logic and parameterized SQL
+│   ├── validators/
+│   │   └── internshipValidator.js # Schema validation rules
+│   ├── app.js                   # Express application setup
+│   └── server.js                # Server entrypoint and startup
+├── database/
+│   ├── schema.sql               # SQLite schema definition
+│   ├── seed.js                  # Safe idempotent seed script
+│   └── init.js                  # Schema initialization runner
+├── tests/
+│   └── internships.test.js      # Automated unit, integration & persistence tests
+├── .env.example                 # Safe environment configuration template
+├── package.json                 # Backend dependencies and scripts
+└── README.md                    # Standalone backend documentation
+```
+
+---
+
+## 6. Installation & Local Setup
+
+### Step 1: Install Dependencies
+```bash
+cd backend
+npm install
+```
+
+### Step 2: Environment Setup
+Create your local environment file from `.env.example`:
+```bash
+cp .env.example .env
+```
+Default contents:
+```env
+PORT=5000
+NODE_ENV=development
+DATABASE_PATH=./database/internships.db
+```
+
+### Step 3: Initialize Database & Seed
+```bash
+npm run init-db
+```
+To run only the seed script at any time:
+```bash
+npm run seed
+```
+
+### Step 4: Start the API
+- **Production mode**:
+  ```bash
+  npm start
+  ```
+- **Development mode** (auto-restart with Node watch):
+  ```bash
+  npm run dev
+  ```
+The API is live at `http://localhost:5000`.
+
+### Step 5: Run Automated Tests
+```bash
+npm test
+```
+Runs all 26 automated tests in an isolated temporary database.
+
+---
+
+## 7. API Response Contract
+
+### Success Response Envelope
+```json
+{
+  "status": "success",
+  "data": {}
+}
+```
+
+### Paginated Success Response Envelope
+```json
+{
+  "status": "success",
+  "data": [],
+  "pagination": {
+    "page": 1,
+    "limit": 10,
+    "totalRecords": 5,
+    "totalPages": 1
+  }
+}
+```
+
+### Error Response Envelope
+```json
+{
+  "status": "error",
+  "message": "Validation failed",
+  "errors": [
+    {
+      "field": "title",
+      "message": "Title is required"
+    }
+  ]
+}
+```
+
+No raw database errors, SQL queries, file paths, or stack traces are returned to API clients.
+
+---
+
+## 8. REST Endpoints & curl Examples
+
+### A. Health Check
+- **`GET /api/health`**
+- Verifies API and SQLite database connectivity.
+```bash
+curl -s http://localhost:5000/api/health
+```
+Response (`200 OK`):
+```json
+{
+  "status": "success",
+  "data": {
+    "api": "running",
+    "database": "connected"
+  }
+}
+```
+
+### B. List Internships (Paginated)
+- **`GET /api/internships`**
+- Supports `page` (default `1`) and `limit` (default `10`, max `100`).
+```bash
+curl -s "http://localhost:5000/api/internships?page=1&limit=2"
+```
+Response (`200 OK`):
+```json
+{
+  "status": "success",
+  "data": [
+    {
+      "id": "INT-101",
+      "title": "Frontend Intern",
+      "domain": "Full Stack Development",
+      "mode": "Remote",
+      "location": "India",
+      "skills": ["HTML", "CSS", "JavaScript"],
+      "openings": 3,
+      "created_at": "2026-11-25 05:28:00",
+      "updated_at": "2026-11-25 05:28:00"
+    },
+    {
+      "id": "INT-102",
+      "title": "API Engineering Intern",
+      "domain": "Full Stack Development",
+      "mode": "Hybrid",
+      "location": "Pune",
+      "skills": ["Node.js", "SQL", "Testing"],
+      "openings": 2,
+      "created_at": "2026-11-25 05:28:00",
+      "updated_at": "2026-11-25 05:28:00"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 2,
+    "totalRecords": 5,
+    "totalPages": 3
+  }
+}
+```
+
+### C. Get Single Internship
+- **`GET /api/internships/:id`**
+```bash
+curl -s http://localhost:5000/api/internships/INT-101
+```
+Response (`200 OK`):
+```json
+{
+  "status": "success",
+  "data": {
+    "id": "INT-101",
+    "title": "Frontend Intern",
+    "domain": "Full Stack Development",
+    "mode": "Remote",
+    "location": "India",
+    "skills": ["HTML", "CSS", "JavaScript"],
+    "openings": 3,
+    "created_at": "2026-11-25 05:28:00",
+    "updated_at": "2026-11-25 05:28:00"
+  }
+}
+```
+If ID is not found (`404 Not Found`):
+```json
+{
+  "status": "error",
+  "message": "Internship with ID 'INT-999' not found",
+  "errors": []
+}
+```
+
+### D. Create Internship
+- **`POST /api/internships`**
+```bash
+curl -s -X POST http://localhost:5000/api/internships \
+  -H "Content-Type: application/json" \
+  -d '{
+    "id": "INT-106",
+    "title": "DevOps Engineering Intern",
+    "domain": "Cloud Computing",
+    "mode": "Remote",
+    "location": "India",
+    "skills": ["Docker", "Kubernetes", "CI/CD"],
+    "openings": 2
+  }'
+```
+Response (`201 Created`):
+```json
+{
+  "status": "success",
+  "data": {
+    "id": "INT-106",
+    "title": "DevOps Engineering Intern",
+    "domain": "Cloud Computing",
+    "mode": "Remote",
+    "location": "India",
+    "skills": ["Docker", "Kubernetes", "CI/CD"],
+    "openings": 2,
+    "created_at": "2026-11-25 05:35:00",
+    "updated_at": "2026-11-25 05:35:00"
+  }
+}
+```
+Duplicate ID Response (`409 Conflict`):
+```json
+{
+  "status": "error",
+  "message": "Internship with ID 'INT-101' already exists",
+  "errors": [
+    {
+      "field": "id",
+      "message": "Internship with ID 'INT-101' already exists"
+    }
+  ]
+}
+```
+
+### E. Update Internship
+- **`PUT /api/internships/:id`**
+```bash
+curl -s -X PUT http://localhost:5000/api/internships/INT-101 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Senior Frontend Intern",
+    "domain": "Full Stack Development",
+    "mode": "Remote",
+    "location": "India & Global",
+    "skills": ["HTML5", "CSS3", "JavaScript", "TypeScript"],
+    "openings": 4
+  }'
+```
+Response (`200 OK`):
+```json
+{
+  "status": "success",
+  "data": {
+    "id": "INT-101",
+    "title": "Senior Frontend Intern",
+    "domain": "Full Stack Development",
+    "mode": "Remote",
+    "location": "India & Global",
+    "skills": ["HTML5", "CSS3", "JavaScript", "TypeScript"],
+    "openings": 4,
+    "created_at": "2026-11-25 05:28:00",
+    "updated_at": "2026-11-25 05:36:10"
+  }
+}
+```
+
+### F. Delete Internship
+- **`DELETE /api/internships/:id`**
+```bash
+curl -s -X DELETE http://localhost:5000/api/internships/INT-106
+```
+Response (`200 OK`):
+```json
+{
+  "status": "success",
+  "message": "Internship with ID 'INT-106' deleted successfully",
+  "data": null
+}
+```
+
+---
+
+## 9. Automated Test Verification
+
+Automated tests verified using Node.js native test runner:
+- **Total Tests**: 26
+- **Passed**: 26
+- **Failed**: 0
+- **Skipped**: 0
+- **Execution Time**: ~520ms
+
+### Verified Test Scenarios
+1. **Health Check & Index**: `GET /api/health` returns `api: running, database: connected`; root returns index; unknown route returns 404.
+2. **List Records**: `GET /api/internships` returns all 5 seeded records with complete pagination metadata.
+3. **Pagination Mechanics**: Correct page slicing (`page=1&limit=2`, `page=3&limit=2`), out-of-range returns empty array.
+4. **Pagination Validation**: Rejects `page=0`, `page=-3`, `page=abc`, and `limit > 100` with HTTP 400.
+5. **Get by ID**: Returns 200 with record for valid ID; returns 404 with error contract for nonexistent ID.
+6. **Create Record**: Returns 201 with created record; rejects duplicate ID with 409; rejects missing title, missing domain, invalid mode, invalid skills type, negative openings, and malformed JSON with HTTP 400.
+7. **Update Record**: Returns 200 with updated record; returns 404 for unknown ID; rejects attempt to modify record ID with 400; rejects missing required fields with 400.
+8. **Delete Record**: Returns 200 after deleting existing record; subsequent GET returns 404; deleting unknown ID returns 404.
+9. **Database Persistence**: Creates record in SQLite, fully closes database connection, reopens connection to the same database file without re-seeding, and proves the record exists and retains all fields.
+
+---
+
+## 10. Known Limitations & Architecture Notes
+
+1. **Embedded SQLite Database**: SQLite is designed for embedded and single-instance deployments. It provides high performance and zero configuration for portfolios, development, and single-server environments. If scaled to a multi-container cluster across multiple cloud availability zones, a client-server database like PostgreSQL would be recommended.
+2. **Task 2 Frontend Decoupling**: The Task 2 frontend deployed on GitHub Pages remains independently functional via static JSON loading. Because GitHub Pages does not run backend Node.js servers, client-server integration is decoupled to maintain 100% uptime on the live GitHub Pages website. Full live full-stack deployment is designated for later internship tasks.
+
