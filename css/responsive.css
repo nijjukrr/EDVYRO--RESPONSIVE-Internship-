@@ -86,15 +86,8 @@
     padding: 0.7rem var(--space-3);
   }
 
-  .nav-cta,
-  .nav-actions,
-  .theme-toggle-btn {
+  .nav-cta {
     width: 100%;
-  }
-
-  .nav-actions {
-    flex-direction: column;
-    align-items: stretch;
   }
 
   .hero-section {

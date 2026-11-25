@@ -182,33 +182,36 @@ describe('EdVyro Task 4 — Frontend Unit & Environment Tests', () => {
     });
   });
 
-  describe('Two-Page Architecture & Monochrome Design Integrity', () => {
-    it('verifies landing page links cleanly to ./internships/, removes logoipsum, and resolves dataset under /internships/', () => {
-      const landingHtml = fs.readFileSync(path.join(ROOT_DIR, 'index.html'), 'utf8');
-      assert.ok(landingHtml.includes('The Next Layer<br>of Intelligence'));
-      assert.ok(landingHtml.includes('href="./internships/"'));
-      assert.ok(landingHtml.includes('da9d53df-6d27-4b12-bdf6-aa9dc2622bdf.mp4'));
-      assert.equal(/logoipsum/i.test(landingHtml), false, 'Landing page must not contain logoipsum text');
+  describe('Single-Page Portal & Purple/White Design Integrity', () => {
+    it('serves InternBoard directly at root index.html without cinematic landing video or Watermelon theme toggle', () => {
+      const portalHtml = fs.readFileSync(path.join(ROOT_DIR, 'index.html'), 'utf8');
+      assert.ok(portalHtml.includes('id="internships"'));
+      assert.ok(portalHtml.includes('id="application-form"'));
+      assert.ok(portalHtml.includes('src="./js/app.js"'));
+      assert.ok(portalHtml.includes('href="./css/style.css"'));
+      assert.ok(portalHtml.includes('href="./assets/images/logo.svg"'));
 
-      const portalHtml = fs.readFileSync(path.join(ROOT_DIR, 'internships', 'index.html'), 'utf8');
-      assert.ok(portalHtml.includes('src="../js/app.js"'));
-      assert.ok(portalHtml.includes('href="../css/style.css"'));
-      assert.ok(portalHtml.includes('id="theme-toggle"'));
+      assert.equal(fs.existsSync(path.join(ROOT_DIR, 'internships', 'index.html')), false);
+      assert.equal(/\.mp4|The Next Layer|logoipsum|theme-toggle|watermelon/i.test(portalHtml), false);
 
       assert.equal(
         getStaticDatasetUrl({
           hostname: 'nijjukrr.github.io',
-          pathname: '/EDVYRO--RESPONSIVE-Internship-/internships/'
+          pathname: '/EDVYRO--RESPONSIVE-Internship-/'
         }),
         '/EDVYRO--RESPONSIVE-Internship-/data/internships.json'
       );
     });
 
-    it('verifies monochrome & Watermelon Green+Black CSS contains zero leftover purple/indigo hex codes', () => {
+    it('restores Purple/Indigo & White design tokens and removes monochrome & Watermelon overrides', () => {
       const css = fs.readFileSync(path.join(ROOT_DIR, 'css', 'style.css'), 'utf8');
-      assert.equal(/#4f46e5|#4338ca|#eef2ff|#c7d2fe|#2563eb/i.test(css), false);
-      assert.ok(css.includes('[data-theme="watermelon"]'));
-      assert.ok(css.includes('#22c55e'));
+      assert.ok(/#4F46E5/i.test(css));
+      assert.ok(/#FFFFFF/i.test(css));
+      assert.ok(/#F8FAFC/i.test(css));
+      assert.equal(/watermelon|#22c55e/i.test(css), false);
+
+      const appJs = fs.readFileSync(path.join(ROOT_DIR, 'js', 'app.js'), 'utf8');
+      assert.equal(/watermelon|setupThemeToggle/i.test(appJs), false);
     });
   });
 

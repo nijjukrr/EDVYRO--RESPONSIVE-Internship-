@@ -7,9 +7,7 @@
 
 ## 1. Project Overview
 
-**InternBoard** delivers a cohesive, production-ready full-stack internship portal:
-- **Page 1 — Cinematic Opening Page (`/`)**: Self-contained dark landing stage featuring a full-bleed atmospheric MP4 video, geometric S-bolt emblem, restrained `Manrope` typography, mobile navigation overlay, and staggered entrance animations respecting `prefers-reduced-motion`.
-- **Page 2 — Monochrome InternBoard Portal (`/internships/`)**: Pure white-and-black (`#FFFFFF` / `#050505`) internship discovery platform with real-time search, multi-domain & work-mode filters, sorting, accessible details modal, interactive application form with dual-layer validation, SQLite persistence, and honest GitHub Pages static demo handling.
+**InternBoard** is a responsive, accessible internship discovery and secure application portal built in a clean purple/indigo and white design system (`#4F46E5` / `#FFFFFF` / `#F8FAFC`), featuring real-time search, multi-domain and work-mode filters, sorting, accessible details modal, interactive application form with dual-layer validation, SQLite persistence, and honest GitHub Pages static demo handling.
 
 ---
 
@@ -44,12 +42,12 @@ Students seeking early-career internships often encounter cluttered job boards t
 
 ## 4. Technology Stack (Verified Against `package.json`)
 
-- **Frontend**: Semantic HTML5, CSS3 (Monochrome CSS variables, CSS Grid, Flexbox, `Manrope` typography), Vanilla JavaScript ES6+ modules (`createElement`/`textContent` XSS safety)
+- **Frontend**: Semantic HTML5, CSS3 (Purple/Indigo & White CSS custom properties, CSS Grid, Flexbox), Vanilla JavaScript ES6+ modules (`createElement`/`textContent` XSS safety)
 - **Backend**: Node.js (`>=18.0.0`), `express` (`^4.21.2`), `dotenv` (`^16.4.7`)
 - **Database**: SQLite 3 via `better-sqlite3` (`^11.8.1`)
 - **Security**: `helmet` (`^8.3.0`), `express-rate-limit` (`^8.7.5`), deliberate origin allowlist CORS
 - **Testing**: Node.js built-in test runner (`node:test`, `node:assert/strict`) + `supertest` (`^7.0.0`)
-- **Hosting**: GitHub Pages (`/` and `/internships/` static frontend) & Local Node.js Express API
+- **Hosting**: GitHub Pages (`/` static frontend) & Local Node.js Express API
 
 *(Strictly zero frontend frameworks: No React, Vue, Angular, Next.js, Bootstrap, or Tailwind CSS.)*
 
@@ -59,11 +57,9 @@ Students seeking early-career internships often encounter cluttered job boards t
 
 ```text
 .
-├── index.html                           # Page 1: Dark Cinematic Landing Page (/)
-├── internships/
-│   └── index.html                       # Page 2: Monochrome InternBoard Application (/internships/)
+├── index.html                           # Single-page Purple/Indigo & White InternBoard Portal (/)
 ├── css/
-│   ├── style.css                        # Monochrome White & Black Design System
+│   ├── style.css                        # Purple/Indigo & White Design System
 │   └── responsive.css                   # Responsive breakpoints (360px to 1920px)
 ├── js/
 │   ├── app.js                           # Portal controller, loading/retry locks, and initialization
@@ -108,11 +104,11 @@ Students seeking early-career internships often encounter cluttered job boards t
 │   │   └── applications.test.js         # 19 automated tests (apps, validation, security, logging, persistence)
 │   └── README.md                        # Backend API documentation
 ├── tests/
-│   └── frontend.test.mjs                # 16 automated frontend, routing, monochrome & validation tests
+│   └── frontend.test.mjs                # 16 automated frontend, routing, purple/white CSS & validation tests
 ├── docs/
 │   └── evidence/                        # Capstone audit reports, checklists, script & screenshots
 ├── assets/
-│   └── images/                          # Monochrome S-bolt brand mark & hero SVG illustration
+│   └── images/                          # Purple/Indigo brand logo & hero SVG illustration
 ├── .gitignore
 └── README.md
 ```
@@ -215,28 +211,23 @@ All tests have been executed and verified using Node.js test suites and headless
 
 ---
 
-## 12. Screenshots (Current Landing, Monochrome Portal & Watermelon Mode)
+## 12. Screenshots (Purple & White Portal)
 
-| Dark Cinematic Landing (`1440px`) | Monochrome White & Black Portal (`1440px`) |
+| Desktop Portal (`1440px`) | Mobile Portal (`360px`) |
 | --- | --- |
-| ![Landing Page Desktop](docs/evidence/landing-desktop-1440.png) | ![Portal Desktop](docs/evidence/portal-desktop-1440.png) |
+| ![Portal Desktop](docs/evidence/portal-desktop-1440.png) | ![Portal Mobile](docs/evidence/portal-mobile-360.png) |
 
-| Watermelon Green & Black Toggle Mode (`1440px`) | Application Form Modal | Application Receipt |
-| --- | --- | --- |
-| ![Watermelon Mode](docs/evidence/portal-watermelon-1440.png) | ![Application Modal](docs/evidence/portal-application-modal.png) | ![Application Receipt](docs/evidence/portal-application-receipt.png) |
-
-| Landing Mobile (`360px`) | Portal Mobile (`360px`) |
+| Application Form Modal | Application Receipt |
 | --- | --- |
-| ![Landing Mobile](docs/evidence/landing-mobile-360.png) | ![Portal Mobile](docs/evidence/portal-mobile-360.png) |
+| ![Application Modal](docs/evidence/portal-application-modal.png) | ![Application Receipt](docs/evidence/portal-application-receipt.png) |
 
-*(Legacy purple-themed Task 2 milestone captures remain archived separately in [`screenshots/`](./screenshots/README.md).)*
+*(Legacy Task 2 milestone captures remain archived separately in [`screenshots/`](./screenshots/README.md).)*
 
 ---
 
 ## 13. Deployment & Live URLs
 
-- **Live Landing Page (`/`)**: [https://nijjukrr.github.io/EDVYRO--RESPONSIVE-Internship-/](https://nijjukrr.github.io/EDVYRO--RESPONSIVE-Internship-/) *(Verified HTTP 200 on GitHub Pages)*
-- **Live Internship Portal (`/internships/`)**: [https://nijjukrr.github.io/EDVYRO--RESPONSIVE-Internship-/internships/](https://nijjukrr.github.io/EDVYRO--RESPONSIVE-Internship-/internships/) *(Verified HTTP 200 on GitHub Pages)*
+- **Live Website (`/`)**: [https://nijjukrr.github.io/EDVYRO--RESPONSIVE-Internship-/](https://nijjukrr.github.io/EDVYRO--RESPONSIVE-Internship-/) *(Verified HTTP 200 on GitHub Pages)*
 - **GitHub Repository**: [https://github.com/nijjukrr/EDVYRO--RESPONSIVE-Internship-](https://github.com/nijjukrr/EDVYRO--RESPONSIVE-Internship-)
 - **Deployment Source**: Branch `main`, Directory `/ (root)`
 
@@ -794,7 +785,7 @@ Automated test suites executed via Node.js native test runner:
 | **Application Submission & Validation** | `backend/tests/applications.test.js` | 11 | Pass (100%) |
 | **Security Headers, CORS, SQLi, Privacy, 429, Logging** | `backend/tests/applications.test.js` | 7 | Pass (100%) |
 | **Application Persistence (Task 4)** | `backend/tests/applications.test.js` | 1 | Pass (100%) |
-| **Frontend Routing, Monochrome CSS, Filters & Validation** | `tests/frontend.test.mjs` | 16 | Pass (100%) |
+| **Frontend Routing, Purple/White CSS, Filters & Validation** | `tests/frontend.test.mjs` | 16 | Pass (100%) |
 | **TOTAL** | **All Automated Suites** | **62** | **62 / 62 (100%)** |
 
 ### Production-Readiness Evidence (`docs/evidence/`)
@@ -802,11 +793,9 @@ Automated test suites executed via Node.js native test runner:
 - **Test, Accessibility & Performance Audit**: [`docs/evidence/TEST_AND_AUDIT_REPORT.md`](./docs/evidence/TEST_AND_AUDIT_REPORT.md)
 - **Two-Minute Walkthrough Script** *(Recording pending)*: [`docs/evidence/WALKTHROUGH_SCRIPT.md`](./docs/evidence/WALKTHROUGH_SCRIPT.md)
 - **Verified Visual Captures**:
-  - Landing Page (`1440px` & `360px`): [`landing-desktop-1440.png`](./docs/evidence/landing-desktop-1440.png) | [`landing-mobile-360.png`](./docs/evidence/landing-mobile-360.png)
-  - Monochrome Portal (`1440px` & `360px`): [`portal-desktop-1440.png`](./docs/evidence/portal-desktop-1440.png) | [`portal-mobile-360.png`](./docs/evidence/portal-mobile-360.png)
-  - Watermelon Green & Black Toggle Mode (`1440px`): [`portal-watermelon-1440.png`](./docs/evidence/portal-watermelon-1440.png) (`#theme-toggle` persists `data-theme="watermelon"` in `localStorage`)
+  - Purple & White Portal (`1440px` & `360px`): [`portal-desktop-1440.png`](./docs/evidence/portal-desktop-1440.png) | [`portal-mobile-360.png`](./docs/evidence/portal-mobile-360.png)
   - Application Modal & Receipt: [`portal-application-modal.png`](./docs/evidence/portal-application-modal.png) | [`portal-application-receipt.png`](./docs/evidence/portal-application-receipt.png)
-- **Measured Browser Performance & Accessibility Audit Limitations**: Live Chrome CDP measured `FCP = 300 ms`, `LCP = 316 ms`, `CLS = 0.0011` on `/internships/` (`LCP = 2032 ms`, `CLS = 0` on `/`), with `0` unlabeled form controls and `0` console/HTTP errors. Formal `lighthouse` and `axe-core` CLI tools are not installed in this environment, so numerical Lighthouse category scores are not claimed.
+- **Measured Browser Performance & Accessibility Audit Limitations**: Local full-stack Chrome CDP measured `FCP = 188 ms`, `DOMContentLoaded = 157 ms`, `loadEventEnd = 161 ms`, with `0` unlabeled form controls and `0` console/HTTP errors across all tested viewports (`360px`–`1440px`). Formal `lighthouse` and `axe-core` CLI tools are not installed in this environment, so numerical Lighthouse category scores are not claimed.
 
 ---
 
@@ -832,7 +821,7 @@ From the repository root folder:
 ```powershell
 python -m http.server 8080
 ```
-Open **`http://localhost:8080`** to view the Cinematic Landing Page (`/`), then click **Get Started** to open the Monochrome Portal (`/internships/`).
+Open **`http://localhost:8080`** (or **`http://localhost:5000/index.html`**) to use the full-stack Purple & White InternBoard portal connected to the local Express + SQLite API.
 
 ### Run Automated Tests Locally
 From the repository root folder:
@@ -849,8 +838,7 @@ node --test tests/frontend.test.mjs
 ## 12. Deployment & Runtime Notes
 
 1. **Public GitHub Pages Mode**:
-   - Landing Page: [https://nijjukrr.github.io/EDVYRO--RESPONSIVE-Internship-/](https://nijjukrr.github.io/EDVYRO--RESPONSIVE-Internship-/)
-   - Internship Portal: [https://nijjukrr.github.io/EDVYRO--RESPONSIVE-Internship-/internships/](https://nijjukrr.github.io/EDVYRO--RESPONSIVE-Internship-/internships/)
+   - Live Portal: [https://nijjukrr.github.io/EDVYRO--RESPONSIVE-Internship-/](https://nijjukrr.github.io/EDVYRO--RESPONSIVE-Internship-/)
    - Hosts static frontend assets directly from `main`. Because GitHub Pages cannot run Node.js or SQLite, the portal loads verified records from `/EDVYRO--RESPONSIVE-Internship-/data/internships.json` and displays an honest Static Demo Mode notice if a user attempts to submit an application without a running backend.
 2. **Local Full-Stack Mode**:
    - Running the backend locally on port `5000` and the frontend on port `8080` enables full API integration, application submission, SQLite persistence, privacy-safe operational logging, rate limiting, and Helmet protection.
