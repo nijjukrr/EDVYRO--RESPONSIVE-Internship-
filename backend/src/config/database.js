@@ -32,6 +32,12 @@ function initDatabase(db) {
   const schemaPath = path.resolve(__dirname, '../../database/schema.sql');
   const schemaSql = fs.readFileSync(schemaPath, 'utf8');
   db.exec(schemaSql);
+
+  // Forward-compatible migration for databases created before portfolio_url existed.
+  const applicationColumns = db.prepare('PRAGMA table_info(applications)').all();
+  if (!applicationColumns.some((column) => column.name === 'portfolio_url')) {
+    db.exec('ALTER TABLE applications ADD COLUMN portfolio_url TEXT');
+  }
 }
 
 /**
