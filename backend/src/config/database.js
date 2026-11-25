@@ -1,21 +1,19 @@
 const fs = require('fs');
 const path = require('path');
 const Database = require('better-sqlite3');
+const { Pool } = require('pg');
 require('dotenv').config();
 
 const DEFAULT_DB_PATH = path.resolve(__dirname, '../../database/internships.db');
-
 let activeDb = null;
+let activePool = null;
 
-/**
- * Resolves the database file path from environment variable or default.
- * @param {string} [customPath]
- * @returns {string}
- */
+function isPostgresConfigured() {
+  return Boolean(process.env.DATABASE_URL && process.env.DATABASE_URL.trim());
+}
+
 function resolveDbPath(customPath) {
-  if (customPath) {
-    return path.resolve(customPath);
-  }
+  if (customPath) return path.resolve(customPath);
   if (process.env.DATABASE_PATH) {
     return path.isAbsolute(process.env.DATABASE_PATH)
       ? process.env.DATABASE_PATH
@@ -24,68 +22,67 @@ function resolveDbPath(customPath) {
   return DEFAULT_DB_PATH;
 }
 
-/**
- * Initializes database tables using schema.sql.
- * @param {import('better-sqlite3').Database} db
- */
 function initDatabase(db) {
   const schemaPath = path.resolve(__dirname, '../../database/schema.sql');
-  const schemaSql = fs.readFileSync(schemaPath, 'utf8');
-  db.exec(schemaSql);
-
-  // Forward-compatible migration for databases created before portfolio_url existed.
+  db.exec(fs.readFileSync(schemaPath, 'utf8'));
   const applicationColumns = db.prepare('PRAGMA table_info(applications)').all();
   if (!applicationColumns.some((column) => column.name === 'portfolio_url')) {
     db.exec('ALTER TABLE applications ADD COLUMN portfolio_url TEXT');
   }
 }
 
-/**
- * Connects to or retrieves the SQLite database instance.
- * @param {string} [dbPath]
- * @returns {import('better-sqlite3').Database}
- */
 function getDb(dbPath) {
-  if (activeDb && !dbPath) {
-    return activeDb;
-  }
-
+  if (activeDb && !dbPath) return activeDb;
   const targetPath = resolveDbPath(dbPath);
-
-  // In-memory or on-disk directory creation
-  if (targetPath !== ':memory:') {
-    const dir = path.dirname(targetPath);
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-  }
-
+  if (targetPath !== ':memory:') fs.mkdirSync(path.dirname(targetPath), { recursive: true });
   const db = new Database(targetPath);
   db.pragma('foreign_keys = ON');
   db.pragma('journal_mode = WAL');
-
   initDatabase(db);
-
-  if (!dbPath) {
-    activeDb = db;
-  }
-
+  if (!dbPath) activeDb = db;
   return db;
 }
 
-/**
- * Closes the active database connection.
- */
-function closeDb() {
+function getPgPool() {
+  if (!isPostgresConfigured()) throw new Error('DATABASE_URL is required for PostgreSQL mode');
+  if (!activePool) {
+    activePool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      max: Number(process.env.PG_POOL_MAX || 5),
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 10000,
+      application_name: 'internboard-api'
+    });
+    activePool.on('error', (error) => {
+      console.error('[InternBoard] Idle PostgreSQL client error:', error.message);
+    });
+  }
+  return activePool;
+}
+
+async function initPostgresDatabase(pool = getPgPool()) {
+  const schemaPath = path.resolve(__dirname, '../../database/schema.postgres.sql');
+  await pool.query(fs.readFileSync(schemaPath, 'utf8'));
+}
+
+async function closeDb() {
   if (activeDb) {
     activeDb.close();
     activeDb = null;
+  }
+  if (activePool) {
+    const pool = activePool;
+    activePool = null;
+    await pool.end();
   }
 }
 
 module.exports = {
   getDb,
+  getPgPool,
   closeDb,
   initDatabase,
-  resolveDbPath
+  initPostgresDatabase,
+  resolveDbPath,
+  isPostgresConfigured
 };
