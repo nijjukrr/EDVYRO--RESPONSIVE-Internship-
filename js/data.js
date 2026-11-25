@@ -45,10 +45,13 @@ export async function loadInternships(targetUrl = null) {
   const sourceLabel = sourceType === "static" ? "Static dataset" : "API";
 
   let response;
+  const controller = typeof AbortController === "function" ? new AbortController() : null;
+  const timeoutId = controller ? setTimeout(() => controller.abort(), 45000) : null;
   try {
     response = await fetch(url, {
       headers: { Accept: "application/json" },
       cache: "no-store",
+      ...(controller ? { signal: controller.signal } : {}),
     });
   } catch (networkError) {
     console.error(`[InternBoard] Network error connecting to ${sourceLabel}:`, {
@@ -65,6 +68,10 @@ export async function loadInternships(targetUrl = null) {
     throw new Error(
       `Unable to connect to the internship API at ${url}. If hosted on Render Free Tier, the backend may be waking up—please wait a few seconds and click Retry.`
     );
+  } finally {
+    if (timeoutId !== null) {
+      clearTimeout(timeoutId);
+    }
   }
 
   if (!response.ok) {

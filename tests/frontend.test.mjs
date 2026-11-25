@@ -49,16 +49,22 @@ describe('EdVyro Task 4 — Frontend Unit & Environment Tests', () => {
       assert.equal(isGitHubPagesHost({ hostname: '127.0.0.1' }), false);
     });
 
-    it('returns null API base URL on GitHub Pages without custom override', () => {
+    it('routes GitHub Pages requests to live Render backend URL by default while prioritizing local/custom overrides', () => {
       const ghLocation = {
         hostname: 'nijjukrr.github.io',
         pathname: '/EDVYRO--RESPONSIVE-Internship-/',
         port: ''
       };
-      assert.equal(getApiBaseUrl(ghLocation), null);
-      assert.equal(isBackendAvailable(ghLocation), false);
-      assert.equal(getApiEndpoint('/internships', ghLocation), null);
-      assert.equal(getApiEndpoint('/applications', ghLocation), null);
+      assert.equal(getApiBaseUrl(ghLocation), 'https://edvyro-responsive-internship.onrender.com/api');
+      assert.equal(isBackendAvailable(ghLocation), true);
+      assert.equal(
+        getApiEndpoint('/internships', ghLocation),
+        'https://edvyro-responsive-internship.onrender.com/api/internships'
+      );
+      assert.equal(
+        getApiEndpoint('/applications', ghLocation),
+        'https://edvyro-responsive-internship.onrender.com/api/applications'
+      );
     });
 
     it('resolves repository-relative static dataset path on GitHub Pages (with or without trailing slash)', () => {
@@ -242,7 +248,7 @@ describe('EdVyro Task 4 — Frontend Unit & Environment Tests', () => {
   });
 
   describe('Data Loader & Failure Handling (js/data.js)', () => {
-    it('selects static dataset directly on GitHub Pages without calling /api/internships', async () => {
+    it('routes GitHub Pages data loader to the deployed Render API and parses API payload cleanly', async () => {
       globalThis.window = {
         location: {
           hostname: 'nijjukrr.github.io',
@@ -252,8 +258,8 @@ describe('EdVyro Task 4 — Frontend Unit & Environment Tests', () => {
       };
 
       const source = resolveDataSource();
-      assert.equal(source.sourceType, 'static');
-      assert.equal(source.url, '/EDVYRO--RESPONSIVE-Internship-/data/internships.json');
+      assert.equal(source.sourceType, 'api');
+      assert.equal(source.url, 'https://edvyro-responsive-internship.onrender.com/api/internships');
 
       const jsonRaw = fs.readFileSync(path.join(ROOT_DIR, 'data', 'internships.json'), 'utf8');
       const fetchedUrls = [];
@@ -263,8 +269,8 @@ describe('EdVyro Task 4 — Frontend Unit & Environment Tests', () => {
       };
 
       const result = await loadInternships();
-      assert.deepEqual(fetchedUrls, ['/EDVYRO--RESPONSIVE-Internship-/data/internships.json']);
-      assert.equal(result.sourceType, 'static');
+      assert.deepEqual(fetchedUrls, ['https://edvyro-responsive-internship.onrender.com/api/internships']);
+      assert.equal(result.sourceType, 'api');
       assert.equal(result.internships.length, 5);
     });
 

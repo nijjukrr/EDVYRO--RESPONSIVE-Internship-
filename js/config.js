@@ -2,22 +2,20 @@
  * Central API and hosting environment configuration for InternBoard.
  *
  * Environment detection rules:
- * 1. Explicit override via window.__API_BASE_URL__, localStorage 'INTERNBOARD_API_URL',
- *    or <meta name="internboard-api-url" content="...">
- * 2. Production Render API constant (DEFAULT_PRODUCTION_API_URL) when set after deployment
- * 3. Backend-served origin (port 5000) -> relative '/api'
- * 4. Local frontend dev (localhost / 127.0.0.1 on non-5000 port) -> 'http://localhost:5000/api'
- * 5. GitHub Pages static hosting (*.github.io) without configured Render URL -> null (static fallback)
+ * 1. Explicit runtime override via window.__API_BASE_URL__ or localStorage 'INTERNBOARD_API_URL'
+ * 2. Local backend-served origin (port 5000) -> relative '/api'
+ * 3. Local frontend dev (localhost / 127.0.0.1 on non-5000 port) -> 'http://localhost:5000/api'
+ * 4. Configured production Render API URL (<meta name="internboard-api-url"> or DEFAULT_PRODUCTION_API_URL)
+ * 5. GitHub Pages static hosting (*.github.io) without configured URL -> null (static fallback)
  * 6. Other custom hosts -> relative '/api'
  */
 
 const DEFAULT_GH_PAGES_REPO_BASE = '/EDVYRO--RESPONSIVE-Internship-';
 
 /**
- * Configure this to the deployed Render Web Service API URL (e.g. 'https://internboard-api.onrender.com/api')
- * once deployed, or set <meta name="internboard-api-url" content="..."> in index.html.
+ * Live Render Web Service API base URL for deployed static frontends (GitHub Pages).
  */
-export const DEFAULT_PRODUCTION_API_URL = '';
+export const DEFAULT_PRODUCTION_API_URL = 'https://edvyro-responsive-internship.onrender.com/api';
 
 /**
  * Normalizes a base URL by stripping trailing slashes.
@@ -45,7 +43,7 @@ export function getMetaApiBaseUrl() {
 }
 
 /**
- * Checks whether an explicit custom or production API base URL has been configured.
+ * Checks whether an explicit runtime override has been configured (window or localStorage).
  * @returns {string | null}
  */
 export function getCustomApiBaseUrl() {
@@ -64,6 +62,14 @@ export function getCustomApiBaseUrl() {
     }
   }
 
+  return null;
+}
+
+/**
+ * Returns the configured production backend API base URL from <meta> or DEFAULT_PRODUCTION_API_URL.
+ * @returns {string | null}
+ */
+export function getConfiguredProductionApiUrl() {
   const metaUrl = getMetaApiBaseUrl();
   if (metaUrl) {
     return metaUrl;
@@ -74,6 +80,19 @@ export function getCustomApiBaseUrl() {
   }
 
   return null;
+}
+
+/**
+ * Returns true if the supplied location is a local development origin.
+ * @param {Location | { hostname?: string, pathname?: string, port?: string }} [loc]
+ * @returns {boolean}
+ */
+export function isLocalDevelopmentHost(loc = typeof window !== 'undefined' ? window.location : undefined) {
+  if (!loc || typeof loc.hostname !== 'string') {
+    return false;
+  }
+  const host = loc.hostname.trim().toLowerCase();
+  return host === 'localhost' || host === '127.0.0.1';
 }
 
 /**
@@ -125,20 +144,21 @@ export function getApiBaseUrl(loc = typeof window !== 'undefined' ? window.locat
     return customUrl;
   }
 
-  if (isGitHubPagesHost(loc)) {
-    return null;
-  }
-
   if (loc && loc.port === '5000') {
     return '/api';
   }
 
-  if (
-    loc &&
-    typeof loc.hostname === 'string' &&
-    (loc.hostname === 'localhost' || loc.hostname === '127.0.0.1')
-  ) {
+  if (isLocalDevelopmentHost(loc)) {
     return 'http://localhost:5000/api';
+  }
+
+  const productionUrl = getConfiguredProductionApiUrl();
+  if (productionUrl) {
+    return productionUrl;
+  }
+
+  if (isGitHubPagesHost(loc)) {
+    return null;
   }
 
   return '/api';

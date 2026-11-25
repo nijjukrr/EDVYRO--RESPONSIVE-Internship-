@@ -409,11 +409,17 @@ export function updateResultsCount(countEl, matchedCount, totalCount, matchedOpe
   const prefix = document.createTextNode("Showing ");
   const roleLabel = matchedCount === 1 ? "internship" : "internships";
   const openingLabel = matchedOpenings === 1 ? "opening" : "openings";
+  const isLocalHost =
+    typeof window !== "undefined" &&
+    window.location &&
+    (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
   const sourceLabel =
     sourceType === "static"
       ? " • Source: Verified Static Dataset"
       : sourceType === "api"
-        ? " • Source: Local Express API"
+        ? isLocalHost
+          ? " • Source: Local Express API"
+          : " • Source: Live Express API"
         : "";
   const suffixText = ` ${roleLabel} (${matchedOpenings} ${openingLabel})${sourceLabel}`;
 
