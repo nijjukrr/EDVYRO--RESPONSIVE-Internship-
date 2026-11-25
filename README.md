@@ -7,12 +7,9 @@
 
 ## 1. Project Overview
 
-**InternBoard** is a complete, production-quality full-stack platform where students can explore verified internship opportunities, filter and search listings, view in-depth role details in an accessible modal dialog, and submit internship applications with real-time client-side feedback and server-side validation.
-
-The project demonstrates progressive, clean full-stack architecture:
-- **Task 2**: Responsive, zero-framework Vanilla JS frontend with accessible UI, search, multi-domain filtering, statistics, and modal dialogues.
-- **Task 3**: Production-structured Node.js/Express REST API backed by persistent SQLite storage, pagination, and parameterized CRUD endpoints.
-- **Task 4**: Secure client-server application integration, interactive application submission modal, dual-layer validation, rate limiting (`express-rate-limit`), security headers (`helmet`), and duplicate application prevention.
+**InternBoard** delivers a cohesive, production-ready full-stack internship portal:
+- **Page 1 — Cinematic Opening Page (`/`)**: Self-contained dark landing stage featuring a full-bleed atmospheric MP4 video, geometric S-bolt emblem, restrained `Manrope` typography, mobile navigation overlay, and staggered entrance animations respecting `prefers-reduced-motion`.
+- **Page 2 — Monochrome InternBoard Portal (`/internships/`)**: Pure white-and-black (`#FFFFFF` / `#050505`) internship discovery platform with real-time search, multi-domain & work-mode filters, sorting, accessible details modal, interactive application form with dual-layer validation, SQLite persistence, and honest GitHub Pages static demo handling.
 
 ---
 
@@ -45,16 +42,16 @@ Students seeking early-career internships often encounter cluttered job boards t
 
 ---
 
-## 4. Technology Stack
+## 4. Technology Stack (Verified Against `package.json`)
 
-- **Frontend**: HTML5, CSS3 (Custom properties, CSS Grid, Flexbox), Vanilla JavaScript (ES6+ native modules)
-- **Backend**: Node.js (v18.0.0+), Express.js (v4.21+)
-- **Database**: SQLite 3 with `better-sqlite3` driver
-- **Security Middleware**: `helmet` (v8.1.0), `express-rate-limit` (v7.5.0), `cors` (v2.8.5)
-- **Testing**: Built-in Node.js test runner (`node:test`, `node:assert/strict`) with `supertest`
-- **Deployment**: GitHub Pages (Frontend static hosting) & Local Node.js Express server
+- **Frontend**: Semantic HTML5, CSS3 (Monochrome CSS variables, CSS Grid, Flexbox, `Manrope` typography), Vanilla JavaScript ES6+ modules (`createElement`/`textContent` XSS safety)
+- **Backend**: Node.js (`>=18.0.0`), `express` (`^4.21.2`), `dotenv` (`^16.4.7`)
+- **Database**: SQLite 3 via `better-sqlite3` (`^11.8.1`)
+- **Security**: `helmet` (`^8.3.0`), `express-rate-limit` (`^8.7.5`), deliberate origin allowlist CORS
+- **Testing**: Node.js built-in test runner (`node:test`, `node:assert/strict`) + `supertest` (`^7.0.0`)
+- **Hosting**: GitHub Pages (`/` and `/internships/` static frontend) & Local Node.js Express API
 
-*(Strictly zero frontend frameworks: No React, Vue, Angular, Next.js, Bootstrap, or Tailwind CSS).*
+*(Strictly zero frontend frameworks: No React, Vue, Angular, Next.js, Bootstrap, or Tailwind CSS.)*
 
 ---
 
@@ -62,55 +59,60 @@ Students seeking early-career internships often encounter cluttered job boards t
 
 ```text
 .
-├── index.html                           # Main frontend application entry point
+├── index.html                           # Page 1: Dark Cinematic Landing Page (/)
+├── internships/
+│   └── index.html                       # Page 2: Monochrome InternBoard Application (/internships/)
 ├── css/
-│   ├── style.css                        # Design system, layout, cards, modals, forms
+│   ├── style.css                        # Monochrome White & Black Design System
 │   └── responsive.css                   # Responsive breakpoints (360px to 1920px)
 ├── js/
-│   ├── app.js                           # Frontend controller and initialization
-│   ├── config.js                        # API URL discovery & configuration (Task 4)
-│   ├── data.js                          # API & JSON data loader with error recovery (Task 4)
-│   ├── application.js                   # Application form validation & submission (Task 4)
+│   ├── app.js                           # Portal controller, loading/retry locks, and initialization
+│   ├── config.js                        # GitHub Pages / Local API environment detection
+│   ├── data.js                          # API & static JSON loader with failure handling
+│   ├── application.js                   # Application modal, client validation & submission
 │   ├── filters.js                       # Composable search, filter, and sorting engine
-│   ├── ui.js                            # DOM rendering, modals, and statistics
-│   └── validation.js                    # Schema validation and data normalization
+│   ├── ui.js                            # Safe DOM rendering, modals, stats & empty/error UI
+│   └── validation.js                    # Schema validation & unsafe URL sanitization
 ├── data/
-│   └── internships.json                 # Official 5 EdVyro sample records (fallback dataset)
-├── backend/                             # Complete Node.js / Express REST API (Tasks 3 & 4)
-│   ├── package.json                     # Backend dependencies and test scripts
-│   ├── .env.example                     # Environment template (PORT, RATE_LIMIT)
+│   └── internships.json                 # Official 5 EdVyro sample records (INT-101 to INT-105)
+├── backend/                             # Node.js / Express REST API
+│   ├── package.json                     # Exact backend dependencies and test scripts
+│   ├── .env.example                     # Safe environment variable template
 │   ├── database/
-│   │   ├── schema.sql                   # SQLite schema (internships + applications)
-│   │   ├── seed.js                      # Idempotent database seeder (INT-101 to INT-105)
-│   │   └── init.js                      # Database initialization script
+│   │   ├── schema.sql                   # SQLite schema (internships + applications + unique index)
+│   │   ├── seed.js                      # Idempotent official seeder (INT-101 to INT-105)
+│   │   └── init.js                      # Database initialization CLI script
 │   ├── src/
-│   │   ├── app.js                       # Express app configuration & middleware
-│   │   ├── server.js                    # Server HTTP listener entry point
-│   │   ├── config/database.js           # SQLite connection management & PRAGMAs
+│   │   ├── app.js                       # Express app, Helmet, deliberate CORS, 1mb JSON limit
+│   │   ├── server.js                    # Server HTTP listener & structured startup/shutdown logs
+│   │   ├── config/database.js           # SQLite connection management & PRAGMA foreign_keys=ON
+│   │   ├── utils/logger.js              # Structured privacy-safe logger (INFO/WARN/ERROR + redaction)
 │   │   ├── middleware/
-│   │   │   ├── errorHandler.js          # Centralized error handler
-│   │   │   └── rateLimiter.js           # express-rate-limit configuration (Task 4)
+│   │   │   ├── errorHandler.js          # Centralized safe JSON error handler
+│   │   │   ├── validateRequest.js       # Schema validation middleware
+│   │   │   └── rateLimiter.js           # express-rate-limit configuration
 │   │   ├── validators/
-│   │   │   ├── internshipValidator.js   # Internship payload schema validation
-│   │   │   └── applicationValidator.js  # Application payload schema validation (Task 4)
+│   │   │   ├── internshipValidator.js   # Internship CRUD validation
+│   │   │   └── applicationValidator.js  # Application payload validation
 │   │   ├── services/
-│   │   │   ├── internshipService.js     # Internship business logic & SQL operations
-│   │   │   └── applicationService.js    # Application submission & duplicate checks (Task 4)
+│   │   │   ├── internshipService.js     # Parameterized internship SQL operations
+│   │   │   └── applicationService.js    # Parameterized application insert & duplicate checks
 │   │   ├── controllers/
-│   │   │   ├── internshipController.js  # Internship route controllers
-│   │   │   └── applicationController.js # Application submission controller (Task 4)
+│   │   │   ├── internshipController.js  # Internship & /api/health controllers
+│   │   │   └── applicationController.js # Application submission controller
 │   │   └── routes/
-│   │       ├── internshipRoutes.js      # /api/internships router
-│   │       └── applicationRoutes.js     # /api/applications router (Task 4)
+│   │       ├── internshipRoutes.js      # /api/health & /api/internships router
+│   │       └── applicationRoutes.js     # /api/applications router
 │   ├── tests/
-│   │   ├── internships.test.js          # 26 automated tests for Task 3 REST API
-│   │   └── applications.test.js         # 18 automated tests for Task 4 Security & Apps
-│   └── README.md                        # Comprehensive backend API documentation
+│   │   ├── internships.test.js          # 27 automated tests (CRUD, pagination, health 200/503, persistence)
+│   │   └── applications.test.js         # 19 automated tests (apps, validation, security, logging, persistence)
+│   └── README.md                        # Backend API documentation
 ├── tests/
-│   └── frontend.test.mjs                # 13 automated frontend & environment tests
+│   └── frontend.test.mjs                # 16 automated frontend, routing, monochrome & validation tests
+├── docs/
+│   └── evidence/                        # Capstone audit reports, checklists, script & screenshots
 ├── assets/
-│   └── images/                          # Brand logos and SVG illustrations
-├── screenshots/                         # Multi-breakpoint UI verification captures
+│   └── images/                          # Monochrome S-bolt brand mark & hero SVG illustration
 ├── .gitignore
 └── README.md
 ```
@@ -772,28 +774,34 @@ Duplicate submission attempt returns HTTP `409 Conflict`:
 
 ---
 
-## 10. Automated Test Verification
+## 10. Automated Test Verification & Capstone Evidence
 
 Automated test suites executed via Node.js native test runner:
-- **Backend Suite** (`cd backend; npm test`): **44 / 44 passing (100%)** across 11 suites (`internships.test.js` + `applications.test.js`).
-- **Frontend Unit Suite** (`node --test tests/frontend.test.mjs`): **13 / 13 passing (100%)** across 6 suites.
-- **Total Automated Tests**: **57 / 57 passing (0 failures, 0 skipped)**.
+- **Backend Suite** (`cd backend; npm test`): **46 / 46 passing (100%)** across 11 suites (`internships.test.js` + `applications.test.js`).
+- **Frontend Unit Suite** (`node --test tests/frontend.test.mjs`): **16 / 16 passing (100%)** across 7 suites.
+- **Total Automated Tests**: **62 / 62 passing (0 failures, 0 skipped)**.
 
 ### Verified Scenarios Summary
 
 | Category | Suite | Tests | Result |
 |---|---|:---:|:---:|
-| **API Health & Metadata** | `backend/tests/internships.test.js` | 3 | Pass (100%) |
-| **Internship Listings (GET)** | `backend/tests/internships.test.js` | 8 | Pass (100%) |
-| **Internship Creation (POST)** | `backend/tests/internships.test.js` | 8 | Pass (100%) |
-| **Internship Updates (PUT)** | `backend/tests/internships.test.js` | 4 | Pass (100%) |
-| **Internship Deletion (DELETE)** | `backend/tests/internships.test.js` | 2 | Pass (100%) |
-| **Database Persistence (Task 3)** | `backend/tests/internships.test.js` | 1 | Pass (100%) |
+| **API Health (`200` / `503`) & Metadata** | `backend/tests/internships.test.js` | 4 | Pass (100%) |
+| **Internship Listings (GET & Pagination)** | `backend/tests/internships.test.js` | 8 | Pass (100%) |
+| **Internship Create, Update, Delete & Persistence** | `backend/tests/internships.test.js` | 15 | Pass (100%) |
 | **Application Submission & Validation** | `backend/tests/applications.test.js` | 11 | Pass (100%) |
-| **Security Headers, CORS, SQLi, Privacy, 429** | `backend/tests/applications.test.js` | 6 | Pass (100%) |
-| **Database Persistence (Task 4)** | `backend/tests/applications.test.js` | 1 | Pass (100%) |
-| **Frontend Env, Fallback, Filters & Validation** | `tests/frontend.test.mjs` | 13 | Pass (100%) |
-| **TOTAL** | **All Automated Suites** | **57** | **57 / 57 (100%)** |
+| **Security Headers, CORS, SQLi, Privacy, 429, Logging** | `backend/tests/applications.test.js` | 7 | Pass (100%) |
+| **Application Persistence (Task 4)** | `backend/tests/applications.test.js` | 1 | Pass (100%) |
+| **Frontend Routing, Monochrome CSS, Filters & Validation** | `tests/frontend.test.mjs` | 16 | Pass (100%) |
+| **TOTAL** | **All Automated Suites** | **62** | **62 / 62 (100%)** |
+
+### Production-Readiness Evidence (`docs/evidence/`)
+- **Security Checklist**: [`docs/evidence/SECURITY_CHECKLIST.md`](./docs/evidence/SECURITY_CHECKLIST.md)
+- **Test, Accessibility & Performance Audit**: [`docs/evidence/TEST_AND_AUDIT_REPORT.md`](./docs/evidence/TEST_AND_AUDIT_REPORT.md)
+- **Two-Minute Walkthrough Script** *(Recording pending)*: [`docs/evidence/WALKTHROUGH_SCRIPT.md`](./docs/evidence/WALKTHROUGH_SCRIPT.md)
+- **Verified Visual Captures**:
+  - Landing Page (`1440px` & `360px`): [`landing-desktop-1440.png`](./docs/evidence/landing-desktop-1440.png) | [`landing-mobile-360.png`](./docs/evidence/landing-mobile-360.png)
+  - Monochrome Portal (`1440px` & `360px`): [`portal-desktop-1440.png`](./docs/evidence/portal-desktop-1440.png) | [`portal-mobile-360.png`](./docs/evidence/portal-mobile-360.png)
+  - Application Modal & Receipt: [`portal-application-modal.png`](./docs/evidence/portal-application-modal.png) | [`portal-application-receipt.png`](./docs/evidence/portal-application-receipt.png)
 
 ---
 
@@ -802,7 +810,7 @@ Automated test suites executed via Node.js native test runner:
 First, open Windows PowerShell and change into your cloned repository folder:
 
 ```powershell
-cd path\to\EDVYRO--RESPONSIVE-Internship-
+cd "C:\path\to\EDVYRO--RESPONSIVE-Internship-"
 ```
 
 ### Terminal 1 — Start the Backend REST API
@@ -819,15 +827,15 @@ From the repository root folder:
 ```powershell
 python -m http.server 8080
 ```
-Open `http://localhost:8080` in your browser. The frontend automatically connects to `http://localhost:5000/api`, loads live SQLite records, and enables persistent application submissions.
+Open **`http://localhost:8080`** to view the Cinematic Landing Page (`/`), then click **Get Started** to open the Monochrome Portal (`/internships/`).
 
 ### Run Automated Tests Locally
 From the repository root folder:
 ```powershell
-# Run Backend Tests (44 tests)
+# Run Backend Tests (46 tests)
 cd backend; npm test; cd ..
 
-# Run Frontend Unit Tests (13 tests)
+# Run Frontend Unit Tests (16 tests)
 node --test tests/frontend.test.mjs
 ```
 
@@ -836,9 +844,10 @@ node --test tests/frontend.test.mjs
 ## 12. Deployment & Runtime Notes
 
 1. **Public GitHub Pages Mode**:
-   - Live URL: [https://nijjukrr.github.io/EDVYRO--RESPONSIVE-Internship-/](https://nijjukrr.github.io/EDVYRO--RESPONSIVE-Internship-/)
-   - Hosts static frontend assets directly from `main`. Because GitHub Pages cannot run Node.js or SQLite, it loads verified records from `/EDVYRO--RESPONSIVE-Internship-/data/internships.json` and displays an honest notification if a user attempts to submit an application without a running backend.
+   - Landing Page: [https://nijjukrr.github.io/EDVYRO--RESPONSIVE-Internship-/](https://nijjukrr.github.io/EDVYRO--RESPONSIVE-Internship-/)
+   - Internship Portal: [https://nijjukrr.github.io/EDVYRO--RESPONSIVE-Internship-/internships/](https://nijjukrr.github.io/EDVYRO--RESPONSIVE-Internship-/internships/)
+   - Hosts static frontend assets directly from `main`. Because GitHub Pages cannot run Node.js or SQLite, the portal loads verified records from `/EDVYRO--RESPONSIVE-Internship-/data/internships.json` and displays an honest Static Demo Mode notice if a user attempts to submit an application without a running backend.
 2. **Local Full-Stack Mode**:
-   - Running the backend locally on port `5000` and the frontend on port `8080` enables full API integration, application submission, SQLite persistence, rate limiting, and Helmet protection.
-   - All runtime SQLite files (`*.db`, `*.db-wal`, `*.db-shm`) and `node_modules` are excluded via `.gitignore`.
+   - Running the backend locally on port `5000` and the frontend on port `8080` enables full API integration, application submission, SQLite persistence, privacy-safe operational logging, rate limiting, and Helmet protection.
+   - All runtime SQLite files (`*.db`, `*.db-wal`, `*.db-shm`), `.env`, and `node_modules` are excluded via `.gitignore`.
 

@@ -567,11 +567,11 @@ Response (`400 Bad Request`):
 
 Automated test verification executed via Node.js native test runner (`node --test tests/**/*.test.js`):
 - **Total Test Suites**: 11
-- **Total Tests**: 44
-- **Passed**: 44
+- **Total Tests**: 46
+- **Passed**: 46
 - **Failed**: 0
 - **Skipped**: 0
-- **Duration**: ~645ms
+- **Duration**: ~672ms
 
 ### Breakdown of Verified Test Suites
 
