@@ -627,6 +627,23 @@
           </div>
 
           <div class="form-group">
+            <label for="app-input-portfolio-url" class="form-label">
+              Portfolio / GitHub URL <span class="optional-tag">(Optional)</span>
+            </label>
+            <input
+              type="url"
+              id="app-input-portfolio-url"
+              name="portfolioUrl"
+              class="form-control"
+              placeholder="https://github.com/your-username"
+              inputmode="url"
+              autocomplete="url"
+              aria-describedby="app-error-portfolio-url"
+            >
+            <p class="form-error-msg" id="app-error-portfolio-url" role="alert"></p>
+          </div>
+
+          <div class="form-group">
             <div class="form-label-row">
               <label for="app-input-cover-letter" class="form-label">
                 Cover Letter / Interest <span class="optional-tag">(Optional)</span>
