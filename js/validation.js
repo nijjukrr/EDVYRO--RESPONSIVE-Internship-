@@ -150,7 +150,9 @@ export function validateDataset(payload) {
     ? payload
     : payload && typeof payload === "object" && Array.isArray(payload.internships)
       ? payload.internships
-      : null;
+      : payload && typeof payload === "object" && Array.isArray(payload.data)
+        ? payload.data
+        : null;
 
   if (!rawList) {
     throw new Error('Dataset format is invalid: expected an object with an "internships" array.');

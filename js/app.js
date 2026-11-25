@@ -1,4 +1,4 @@
-import { DEFAULT_DATA_URL, loadInternships } from "./data.js";
+import { DEFAULT_API_ENDPOINT, loadInternships } from "./data.js";
 import {
   applyAllFilters,
   getUniqueDomains,
@@ -120,7 +120,7 @@ export function clearFilters(dom = getDomElements()) {
 /**
  * Fetches dataset records and renders initial statistics, filter options, and listings.
  */
-async function initializeDataset(dom, dataUrl = DEFAULT_DATA_URL) {
+async function initializeDataset(dom, dataUrl = DEFAULT_API_ENDPOINT) {
   appState.isLoaded = false;
   showLoadingState(dom.resultsContainer);
   if (dom.resultsCount) {
