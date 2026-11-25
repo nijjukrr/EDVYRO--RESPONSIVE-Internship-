@@ -17,3 +17,19 @@ CREATE TABLE IF NOT EXISTS internships (
 
 CREATE INDEX IF NOT EXISTS idx_internships_domain ON internships(domain);
 CREATE INDEX IF NOT EXISTS idx_internships_mode ON internships(mode);
+
+-- EdVyro Task 4: Applications Table with Foreign Key & Uniqueness Constraint
+CREATE TABLE IF NOT EXISTS applications (
+  id TEXT PRIMARY KEY NOT NULL CHECK(length(trim(id)) > 0),
+  internship_id TEXT NOT NULL REFERENCES internships(id) ON DELETE RESTRICT,
+  full_name TEXT NOT NULL CHECK(length(trim(full_name)) > 0),
+  email TEXT NOT NULL CHECK(length(trim(email)) > 0),
+  cover_letter TEXT,
+  created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+  updated_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
+  UNIQUE(internship_id, email)
+);
+
+CREATE INDEX IF NOT EXISTS idx_applications_internship_id ON applications(internship_id);
+CREATE INDEX IF NOT EXISTS idx_applications_email ON applications(email);
+
