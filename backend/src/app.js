@@ -1,9 +1,17 @@
 const express = require('express');
+const helmet = require('helmet');
 const internshipRoutes = require('./routes/internshipRoutes');
 const applicationRoutes = require('./routes/applicationRoutes');
 const { errorHandler } = require('./middleware/errorHandler');
 
 const app = express();
+
+// Secure HTTP headers with Helmet
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' }
+  })
+);
 
 // Parse JSON request bodies
 app.use(express.json({ limit: '1mb' }));
