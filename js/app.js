@@ -1,4 +1,5 @@
 import { DEFAULT_API_ENDPOINT, loadInternships } from "./data.js";
+import { initApplicationModule, openApplicationModal } from "./application.js";
 import {
   applyAllFilters,
   getUniqueDomains,
@@ -85,9 +86,18 @@ function updateListingView(dom) {
     return;
   }
 
-  renderInternships(filtered, dom.resultsContainer, (internship, triggerEl) => {
-    openInternshipDetails(internship, triggerEl);
-  });
+  renderInternships(
+    filtered,
+    dom.resultsContainer,
+    (internship, triggerEl) => {
+      openInternshipDetails(internship, triggerEl, (item, btn) => {
+        openApplicationModal(item, btn);
+      });
+    },
+    (internship, triggerEl) => {
+      openApplicationModal(internship, triggerEl);
+    }
+  );
 }
 
 /**
@@ -306,6 +316,7 @@ function init() {
 
   setupNavigation(dom);
   setupEventListeners(dom);
+  initApplicationModule();
   initializeDataset(dom);
 }
 

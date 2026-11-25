@@ -200,9 +200,10 @@ export function populateSelectOptions(selectEl, options, defaultLabel) {
  * Builds a single internship card DOM element safely.
  * @param {object} internship
  * @param {(internship: object, trigger: HTMLElement) => void} onViewDetails
+ * @param {(internship: object, trigger: HTMLElement) => void} onApply
  * @returns {HTMLElement}
  */
-export function createInternshipCard(internship, onViewDetails) {
+export function createInternshipCard(internship, onViewDetails, onApply) {
   const card = document.createElement("article");
   card.className = "internship-card";
   card.setAttribute("aria-labelledby", `card-title-${internship.id}`);
@@ -281,7 +282,7 @@ export function createInternshipCard(internship, onViewDetails) {
     metaList.appendChild(itemWrap);
   });
 
-  // Description (uses verified description if supplied, otherwise clearly notes dataset scope)
+  // Description
   const desc = document.createElement("p");
   desc.className = "card-description";
   desc.textContent =
@@ -305,7 +306,7 @@ export function createInternshipCard(internship, onViewDetails) {
 
   skillsWrap.appendChild(skillsList);
 
-  // Card footer: Openings + View Details button
+  // Card footer: Openings + View Details + Apply Now buttons
   const footer = document.createElement("div");
   footer.className = "card-footer";
 
@@ -313,14 +314,29 @@ export function createInternshipCard(internship, onViewDetails) {
   openingsEl.className = "card-openings";
   openingsEl.textContent = formatOpenings(internship.openings);
 
+  const actionsWrap = document.createElement("div");
+  actionsWrap.className = "card-actions";
+
   const detailsBtn = document.createElement("button");
   detailsBtn.type = "button";
-  detailsBtn.className = "btn btn-primary btn-sm";
+  detailsBtn.className = "btn btn-primary btn-sm btn-view-details";
   detailsBtn.textContent = "View Details";
   detailsBtn.setAttribute("aria-label", `View details for ${internship.title} (${internship.id})`);
   detailsBtn.addEventListener("click", () => onViewDetails(internship, detailsBtn));
 
-  footer.append(openingsEl, detailsBtn);
+  actionsWrap.appendChild(detailsBtn);
+
+  if (typeof onApply === "function") {
+    const applyBtn = document.createElement("button");
+    applyBtn.type = "button";
+    applyBtn.className = "btn btn-secondary btn-sm btn-apply";
+    applyBtn.textContent = "Apply Now";
+    applyBtn.setAttribute("aria-label", `Apply for ${internship.title} (${internship.id})`);
+    applyBtn.addEventListener("click", () => onApply(internship, applyBtn));
+    actionsWrap.appendChild(applyBtn);
+  }
+
+  footer.append(openingsEl, actionsWrap);
 
   card.append(header, badges, metaList, desc, skillsWrap, footer);
   return card;
@@ -331,8 +347,9 @@ export function createInternshipCard(internship, onViewDetails) {
  * @param {object[]} internships
  * @param {HTMLElement} container
  * @param {(internship: object, trigger: HTMLElement) => void} onViewDetails
+ * @param {(internship: object, trigger: HTMLElement) => void} [onApply]
  */
-export function renderInternships(internships, container, onViewDetails) {
+export function renderInternships(internships, container, onViewDetails, onApply) {
   if (!container) return;
 
   const grid = document.createElement("div");
@@ -340,7 +357,7 @@ export function renderInternships(internships, container, onViewDetails) {
 
   const fragment = document.createDocumentFragment();
   internships.forEach((internship) => {
-    fragment.appendChild(createInternshipCard(internship, onViewDetails));
+    fragment.appendChild(createInternshipCard(internship, onViewDetails, onApply));
   });
 
   grid.appendChild(fragment);
@@ -500,8 +517,9 @@ function getFocusableElements(container) {
  * Opens the accessible internship details modal and populates all sections safely.
  * @param {object} internship
  * @param {HTMLElement | null} triggerElement
+ * @param {((internship: object, trigger: HTMLElement) => void) | null} [onApply]
  */
-export function openInternshipDetails(internship, triggerElement = null) {
+export function openInternshipDetails(internship, triggerElement = null, onApply = null) {
   const modal = document.getElementById("internship-modal");
   if (!modal) return;
 
@@ -593,6 +611,17 @@ export function openInternshipDetails(internship, triggerElement = null) {
       link.textContent = "Open Application Link";
       applyContainer.appendChild(link);
     }
+  }
+
+  // Hook up the Details modal Apply button
+  const modalApplyBtn = document.getElementById("modal-apply-btn");
+  if (modalApplyBtn) {
+    modalApplyBtn.onclick = () => {
+      closeInternshipDetails();
+      if (typeof onApply === "function") {
+        onApply(internship, modalApplyBtn);
+      }
+    };
   }
 
   modal.hidden = false;

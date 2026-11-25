@@ -1,4 +1,5 @@
 const express = require('express');
+const path = require('path');
 const helmet = require('helmet');
 const internshipRoutes = require('./routes/internshipRoutes');
 const applicationRoutes = require('./routes/applicationRoutes');
@@ -29,7 +30,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// Root API index
+// Root API index (Preserved for Task 3 contracts and tests)
 app.get('/', (req, res) => {
   res.status(200).json({
     status: 'success',
@@ -45,6 +46,9 @@ app.get('/', (req, res) => {
 // Mount REST API routes
 app.use('/api', internshipRoutes);
 app.use('/api', applicationRoutes);
+
+// Serve static frontend files from project root
+app.use(express.static(path.resolve(__dirname, '../../')));
 
 // Catch-all 404 handler
 app.use((req, res) => {

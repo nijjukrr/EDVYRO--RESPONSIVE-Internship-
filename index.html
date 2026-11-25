@@ -470,8 +470,147 @@
         </section>
       </div>
 
-      <div class="modal-footer">
-        <button type="button" class="btn btn-primary" id="modal-close-bottom">Close</button>
+      <div class="modal-footer modal-footer-split">
+        <button type="button" class="btn btn-ghost" id="modal-close-bottom">Close</button>
+        <button type="button" class="btn btn-primary" id="modal-apply-btn">Apply Now</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Internship Application Modal -->
+  <div
+    class="modal-overlay"
+    id="application-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="app-modal-title"
+    hidden
+  >
+    <div class="modal-backdrop" data-app-modal-close></div>
+    <div class="modal-dialog" role="document">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-badges">
+            <span class="badge badge-id" id="app-modal-id">INT-101</span>
+            <span class="badge badge-domain" id="app-modal-domain">Full Stack Development</span>
+            <span class="badge badge-mode" id="app-modal-mode">Remote</span>
+          </div>
+          <h2 id="app-modal-title" class="modal-title">Apply for Internship</h2>
+          <p id="app-modal-company" class="modal-company">EdVyro Verified Opportunity</p>
+        </div>
+        <button
+          type="button"
+          class="modal-close-icon"
+          id="app-modal-close-top"
+          aria-label="Close application form"
+        >
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" aria-hidden="true">
+            <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"></path>
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body" id="app-modal-body">
+        <!-- Form Alert for server errors / messages -->
+        <div class="form-alert form-alert-error" id="app-form-alert" role="alert" hidden>
+          <svg class="alert-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"></circle>
+            <path d="M12 8v5M12 16h.01" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"></path>
+          </svg>
+          <span id="app-form-alert-msg"></span>
+        </div>
+
+        <!-- Success confirmation state -->
+        <div class="app-success-state" id="app-success-state" role="status" hidden>
+          <div class="success-icon-wrap" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="36" height="36" fill="none">
+              <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"></circle>
+              <path d="M8 12l2.5 2.5L16 9" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+          </div>
+          <h3 class="success-title">Application Submitted!</h3>
+          <p class="success-text" id="app-success-desc">
+            Your application has been received and safely recorded in the database.
+          </p>
+          <div class="app-receipt-box">
+            <div class="receipt-item">
+              <span class="receipt-label">Application ID</span>
+              <strong id="app-receipt-id" class="receipt-value">—</strong>
+            </div>
+            <div class="receipt-item">
+              <span class="receipt-label">Position</span>
+              <strong id="app-receipt-position" class="receipt-value">—</strong>
+            </div>
+          </div>
+          <button type="button" class="btn btn-primary" id="app-success-done-btn">Done</button>
+        </div>
+
+        <!-- Main Application Form -->
+        <form id="application-form" class="application-form" novalidate>
+          <label for="app-input-internship-id" class="sr-only">Selected Internship ID</label>
+          <input type="hidden" id="app-input-internship-id" name="internshipId" value="">
+
+          <div class="form-group">
+            <label for="app-input-full-name" class="form-label">
+              Full Name <span class="required-star" aria-hidden="true">*</span>
+            </label>
+            <input
+              type="text"
+              id="app-input-full-name"
+              name="fullName"
+              class="form-control"
+              placeholder="e.g. Alex Sharma"
+              autocomplete="name"
+              required
+              aria-describedby="app-error-full-name"
+            >
+            <p class="form-error-msg" id="app-error-full-name" role="alert"></p>
+          </div>
+
+          <div class="form-group">
+            <label for="app-input-email" class="form-label">
+              Email Address <span class="required-star" aria-hidden="true">*</span>
+            </label>
+            <input
+              type="email"
+              id="app-input-email"
+              name="email"
+              class="form-control"
+              placeholder="alex@example.com"
+              autocomplete="email"
+              required
+              aria-describedby="app-error-email"
+            >
+            <p class="form-error-msg" id="app-error-email" role="alert"></p>
+          </div>
+
+          <div class="form-group">
+            <div class="form-label-row">
+              <label for="app-input-cover-letter" class="form-label">
+                Cover Letter / Interest <span class="optional-tag">(Optional)</span>
+              </label>
+              <span class="char-counter" id="app-char-counter" aria-live="polite">0 / 1000</span>
+            </div>
+            <textarea
+              id="app-input-cover-letter"
+              name="coverLetter"
+              class="form-control form-textarea"
+              rows="4"
+              maxlength="1000"
+              placeholder="Briefly describe your relevant experience, technical skills, and interest in this role..."
+              aria-describedby="app-error-cover-letter"
+            ></textarea>
+            <p class="form-error-msg" id="app-error-cover-letter" role="alert"></p>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn btn-ghost" id="app-modal-cancel">Cancel</button>
+            <button type="submit" class="btn btn-primary" id="app-submit-btn">
+              <span class="btn-spinner" id="app-btn-spinner" aria-hidden="true" hidden></span>
+              <span id="app-btn-text">Submit Application</span>
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   </div>

@@ -19,6 +19,10 @@ export function getApiBaseUrl() {
     }
   }
 
+  if (typeof window !== 'undefined' && window.location.port === '5000') {
+    return '/api';
+  }
+
   if (
     typeof window !== 'undefined' &&
     (window.location.hostname === 'localhost' ||

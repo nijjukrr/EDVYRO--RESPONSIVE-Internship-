@@ -160,6 +160,34 @@
     width: 100%;
   }
 
+  .card-actions {
+    flex-direction: column;
+    width: 100%;
+    gap: var(--space-2);
+  }
+
+  .card-actions .btn {
+    width: 100%;
+  }
+
+  .modal-footer-split {
+    flex-direction: column-reverse;
+    gap: var(--space-2);
+  }
+
+  .modal-footer-split .btn {
+    width: 100%;
+  }
+
+  .form-actions {
+    flex-direction: column-reverse;
+    gap: var(--space-2);
+  }
+
+  .form-actions .btn {
+    width: 100%;
+  }
+
   .modal-overlay {
     padding: var(--space-2);
   }
