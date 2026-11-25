@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS applications (
   internship_id TEXT NOT NULL REFERENCES internships(id) ON DELETE RESTRICT,
   full_name TEXT NOT NULL CHECK(length(trim(full_name)) > 0),
   email TEXT NOT NULL CHECK(length(trim(email)) > 0),
+  portfolio_url TEXT,
   cover_letter TEXT,
   created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
   updated_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
