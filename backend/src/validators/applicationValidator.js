@@ -1,5 +1,19 @@
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const ALLOWED_FIELDS = new Set(['internshipId', 'fullName', 'email', 'coverLetter']);
+const ALLOWED_FIELDS = new Set(['internshipId', 'fullName', 'email', 'portfolioUrl', 'coverLetter']);
+const MAX_PORTFOLIO_URL_LENGTH = 2048;
+
+/** Accept only absolute HTTP(S) URLs without embedded credentials. */
+function isSafeHttpUrl(value) {
+  if (typeof value !== 'string' || !value.trim() || value.length > MAX_PORTFOLIO_URL_LENGTH) return false;
+  if (/[\\s\\u0000-\\u001F\\u007F]/.test(value) || value.startsWith('//') || value.includes('\\\\')) return false;
+  try {
+    const parsed = new URL(value);
+    return (parsed.protocol === 'https:' || parsed.protocol === 'http:') &&
+      Boolean(parsed.hostname) && !parsed.username && !parsed.password;
+  } catch {
+    return false;
+  }
+}
 
 /**
  * Validates request payload for submitting an internship application.
@@ -65,6 +79,16 @@ function validateCreateApplication(body) {
     }
   }
 
+  // Portfolio URL validation (optional, but must be a safe absolute HTTP(S) URL when supplied)
+  if (body.portfolioUrl !== undefined && body.portfolioUrl !== null && body.portfolioUrl !== '') {
+    if (!isSafeHttpUrl(body.portfolioUrl)) {
+      errors.push({
+        field: 'portfolioUrl',
+        message: 'Portfolio URL must be a valid absolute HTTP or HTTPS URL without embedded credentials (maximum 2048 characters)'
+      });
+    }
+  }
+
   // Cover Letter validation (optional)
   if (body.coverLetter !== undefined && body.coverLetter !== null) {
     if (typeof body.coverLetter !== 'string') {
@@ -84,5 +108,6 @@ function validateCreateApplication(body) {
 }
 
 module.exports = {
-  validateCreateApplication
+  validateCreateApplication,
+  isSafeHttpUrl
 };
