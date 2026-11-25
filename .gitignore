@@ -11,6 +11,11 @@ node_modules/
 npm-debug.log*
 .env
 .env.local
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.sqlite
 
 # Logs and temporary files
 *.log

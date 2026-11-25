@@ -1,0 +1,35 @@
+{
+  "name": "internboard-backend",
+  "version": "1.0.0",
+  "description": "EdVyro Full Stack Development Task 3 — REST API and Persistent SQLite Storage",
+  "main": "src/server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "init-db": "node database/init.js",
+    "seed": "node database/seed.js",
+    "test": "node --test tests/**/*.test.js"
+  },
+  "keywords": [
+    "edvyro",
+    "internboard",
+    "rest-api",
+    "sqlite",
+    "express",
+    "crud"
+  ],
+  "author": "Nijju Kumar",
+  "license": "ISC",
+  "dependencies": {
+    "better-sqlite3": "^11.8.1",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "supertest": "^7.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
