@@ -54,6 +54,7 @@ describe('EdVyro Task 4 — Applications API & Security Tests', () => {
         internshipId: 'INT-101',
         fullName: 'Samantha Miller',
         email: 'samantha.miller@example.com',
+        portfolioUrl: 'https://github.com/samantha-miller',
         coverLetter: 'Excited to apply for the Frontend Intern role. Proficient in HTML, CSS, and modern JS.'
       };
 
@@ -65,6 +66,7 @@ describe('EdVyro Task 4 — Applications API & Security Tests', () => {
       assert.equal(res.body.data.internshipId, 'INT-101');
       assert.equal(res.body.data.fullName, 'Samantha Miller');
       assert.equal(res.body.data.email, 'samantha.miller@example.com');
+      assert.equal(res.body.data.portfolioUrl, payload.portfolioUrl);
       assert.equal(res.body.data.coverLetter, payload.coverLetter);
       assert.ok(res.body.data.createdAt);
     });
@@ -189,6 +191,31 @@ describe('EdVyro Task 4 — Applications API & Security Tests', () => {
         assert.equal(res.status, 400, `Expected 400 for email: ${email}`);
         assert.ok(res.body.errors.some((e) => e.field === 'email'));
       }
+    });
+
+    it('rejects unsafe portfolio URL schemes and malformed URLs with HTTP 400', async () => {
+      const unsafeUrls = ['javascript:alert(1)', 'data:text/html,unsafe', 'file:///etc/passwd', '//attacker.example/path', 'https://user:password@example.com/profile', 'not-a-url'];
+      for (const portfolioUrl of unsafeUrls) {
+        const res = await request(app).post('/api/applications').send({
+          internshipId: 'INT-105',
+          fullName: 'Safe Test User',
+          email: `safe-url-${Buffer.from(portfolioUrl).toString('hex').slice(0, 16)}@example.com`,
+          portfolioUrl
+        });
+        assert.equal(res.status, 400, `Expected unsafe URL rejection for: ${portfolioUrl}`);
+        assert.ok(res.body.errors.some((error) => error.field === 'portfolioUrl'));
+      }
+    });
+
+    it('accepts and persists a safe HTTPS portfolio URL', async () => {
+      const res = await request(app).post('/api/applications').send({
+        internshipId: 'INT-104',
+        fullName: 'Portfolio Test User',
+        email: 'portfolio.test@example.com',
+        portfolioUrl: 'https://portfolio.example.dev/work'
+      });
+      assert.equal(res.status, 201);
+      assert.equal(res.body.data.portfolioUrl, 'https://portfolio.example.dev/work');
     });
 
     it('rejects cover letter exceeding 1000 characters with HTTP 400', async () => {
@@ -342,6 +369,7 @@ describe('EdVyro Task 4 — Applications API & Security Tests', () => {
         applicationId: 'APP-123',
         internshipId: 'INT-101',
         email: 'secret.user@example.com',
+        portfolioUrl: 'https://private.example/profile',
         fullName: 'Private Applicant',
         coverLetter: 'Confidential cover letter text',
         password: 'super-secret-password',
@@ -351,6 +379,7 @@ describe('EdVyro Task 4 — Applications API & Security Tests', () => {
       assert.equal(sanitized.applicationId, 'APP-123');
       assert.equal(sanitized.internshipId, 'INT-101');
       assert.equal(sanitized.email, '[REDACTED]');
+      assert.equal(sanitized.portfolioUrl, '[REDACTED]');
       assert.equal(sanitized.fullName, '[REDACTED]');
       assert.equal(sanitized.coverLetter, '[REDACTED]');
       assert.equal(sanitized.password, '[REDACTED]');
