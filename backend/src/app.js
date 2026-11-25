@@ -7,6 +7,9 @@ const { errorHandler } = require('./middleware/errorHandler');
 
 const app = express();
 
+// Respect first reverse proxy hop (e.g., Render) so express-rate-limit identifies client IP safely
+app.set('trust proxy', 1);
+
 // Secure HTTP headers with Helmet
 app.use(
   helmet({
@@ -17,19 +20,29 @@ app.use(
 // Parse JSON request bodies
 app.use(express.json({ limit: '1mb' }));
 
-// Deliberate CORS policy: allow local development ports, configured CORS_ORIGINS, and GitHub Pages origin
+// Deliberate CORS policy: allow GitHub Pages origin, configured CORS_ORIGINS, and local dev in non-production
 const LOCAL_ORIGIN_PATTERN = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
-const EXTRA_ALLOWED_ORIGINS = new Set(
-  (process.env.CORS_ORIGINS || '')
-    .split(',')
-    .map((o) => o.trim())
-    .filter(Boolean)
-);
-const STATIC_ALLOWED_ORIGINS = new Set(['https://nijjukrr.github.io', ...EXTRA_ALLOWED_ORIGINS]);
 
 function isOriginPermitted(origin) {
-  if (!origin) return false;
-  return LOCAL_ORIGIN_PATTERN.test(origin) || STATIC_ALLOWED_ORIGINS.has(origin);
+  if (!origin || origin === '*') return false;
+
+  const extraAllowed = new Set(
+    (process.env.CORS_ORIGINS || '')
+      .split(',')
+      .map((o) => o.trim())
+      .filter((o) => o && o !== '*')
+  );
+  const allowedOrigins = new Set(['https://nijjukrr.github.io', ...extraAllowed]);
+
+  if (allowedOrigins.has(origin)) {
+    return true;
+  }
+
+  if (process.env.NODE_ENV !== 'production' && LOCAL_ORIGIN_PATTERN.test(origin)) {
+    return true;
+  }
+
+  return false;
 }
 
 app.use((req, res, next) => {

@@ -8,9 +8,9 @@ const applicationController = {
   /**
    * POST /api/applications
    */
-  create(req, res, next) {
+  async create(req, res, next) {
     try {
-      const created = applicationService.createApplication(req.body);
+      const created = await applicationService.createApplication(req.body);
 
       logger.info('application_submitted', {
         applicationId: created.id,

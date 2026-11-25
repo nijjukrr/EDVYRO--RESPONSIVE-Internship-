@@ -1,4 +1,4 @@
-const { getDb } = require('../src/config/database');
+const { getDb, getPgPool, getDbMode } = require('../src/config/database');
 
 const OFFICIAL_INTERNSHIPS = [
   {
@@ -48,15 +48,7 @@ const OFFICIAL_INTERNSHIPS = [
   }
 ];
 
-/**
- * Seeds official internship records into SQLite safely.
- * Rerun-safe: preserves existing records and avoids overwriting user modifications.
- * @param {import('better-sqlite3').Database} [targetDb]
- * @returns {{ inserted: number, existing: number, total: number }}
- */
-function seedDatabase(targetDb) {
-  const db = targetDb || getDb();
-
+function seedSqlite(db) {
   const checkStmt = db.prepare('SELECT id FROM internships WHERE id = ?');
   const insertStmt = db.prepare(`
     INSERT INTO internships (id, title, domain, mode, location, skills, openings, created_at, updated_at)
@@ -89,21 +81,69 @@ function seedDatabase(targetDb) {
   insertTransaction(OFFICIAL_INTERNSHIPS);
 
   console.log(`[Seed] Completed: ${inserted} inserted, ${existing} already present (total: ${OFFICIAL_INTERNSHIPS.length}).`);
-
   return { inserted, existing, total: OFFICIAL_INTERNSHIPS.length };
 }
 
-if (require.main === module) {
-  try {
-    seedDatabase();
-    process.exit(0);
-  } catch (err) {
-    console.error('[Seed Error]:', err.message);
-    process.exit(1);
+async function seedPostgresDatabase(pool = getPgPool()) {
+  let inserted = 0;
+  let existing = 0;
+
+  for (const record of OFFICIAL_INTERNSHIPS) {
+    const res = await pool.query(
+      `INSERT INTO internships (id, title, domain, mode, location, skills, openings, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+       ON CONFLICT (id) DO NOTHING`,
+      [
+        record.id,
+        record.title,
+        record.domain,
+        record.mode,
+        record.location,
+        JSON.stringify(record.skills),
+        record.openings
+      ]
+    );
+    if (res.rowCount > 0) {
+      inserted++;
+    } else {
+      existing++;
+    }
   }
+
+  console.log(`[Seed] PostgreSQL completed: ${inserted} inserted, ${existing} already present (total: ${OFFICIAL_INTERNSHIPS.length}).`);
+  return { inserted, existing, total: OFFICIAL_INTERNSHIPS.length };
+}
+
+/**
+ * Seeds official internship records idempotently.
+ * Runs synchronously when passed an SQLite DB or when in SQLite mode (preserving sync test hooks);
+ * runs asynchronously when passed a pg Pool or when DATABASE_URL selects PostgreSQL mode.
+ */
+function seedDatabase(target) {
+  if (target && typeof target.query === 'function') {
+    return seedPostgresDatabase(target);
+  }
+  if (target) {
+    return seedSqlite(target);
+  }
+  if (getDbMode() === 'postgres') {
+    return seedPostgresDatabase(getPgPool());
+  }
+  return seedSqlite(getDb());
+}
+
+if (require.main === module) {
+  Promise.resolve()
+    .then(() => seedDatabase())
+    .then(() => process.exit(0))
+    .catch((err) => {
+      console.error('[Seed Error]:', err.message);
+      process.exit(1);
+    });
 }
 
 module.exports = {
   OFFICIAL_INTERNSHIPS,
-  seedDatabase
+  seedDatabase,
+  seedPostgresDatabase
 };

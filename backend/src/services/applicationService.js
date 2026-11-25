@@ -1,7 +1,12 @@
-const { getDb } = require('../config/database');
+const { getDb, getPgPool, getDbMode } = require('../config/database');
+
+function formatTimestamp(value) {
+  if (!value) return value;
+  return value instanceof Date ? value.toISOString() : value;
+}
 
 /**
- * Normalizes an application database row for API response.
+ * Normalizes a SQLite or PostgreSQL application row for API responses.
  * @param {object} row
  * @returns {object|null}
  */
@@ -14,18 +19,50 @@ function formatApplication(row) {
     email: row.email,
     portfolioUrl: row.portfolio_url || null,
     coverLetter: row.cover_letter || null,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at
+    createdAt: formatTimestamp(row.created_at),
+    updatedAt: formatTimestamp(row.updated_at)
   };
 }
 
+function resolveTarget(explicitDb) {
+  if (explicitDb && typeof explicitDb.query === 'function') {
+    return { mode: 'postgres', pool: explicitDb };
+  }
+  if (explicitDb) {
+    return { mode: 'sqlite', db: explicitDb };
+  }
+  const mode = getDbMode();
+  return mode === 'postgres'
+    ? { mode: 'postgres', pool: getPgPool() }
+    : { mode: 'sqlite', db: getDb() };
+}
+
+function buildMissingInternshipError(trimmedInternshipId) {
+  const error = new Error(`Internship with ID '${trimmedInternshipId}' does not exist`);
+  error.statusCode = 404;
+  error.errors = [
+    { field: 'internshipId', message: `Internship with ID '${trimmedInternshipId}' does not exist` }
+  ];
+  return error;
+}
+
+function buildDuplicateApplicationError() {
+  const error = new Error('An application with this email already exists for this internship');
+  error.statusCode = 409;
+  error.errors = [
+    {
+      field: 'email',
+      message: 'An application with this email already exists for this internship'
+    }
+  ];
+  return error;
+}
+
 /**
- * Creates a new application in SQLite using parameterized SQL.
- * Verifies referenced internship existence and enforces single application per email/internship.
- * @param {object} data
- * @param {import('better-sqlite3').Database} [db]
+ * Creates a new application using parameterized SQL in SQLite or PostgreSQL.
+ * Verifies referenced internship existence and enforces unique candidate submission per role.
  */
-function createApplication(data, db = getDb()) {
+async function createApplication(data, db) {
   const trimmedInternshipId = data.internshipId.trim();
   const trimmedFullName = data.fullName.trim();
   const normalizedEmail = data.email.trim().toLowerCase();
@@ -38,47 +75,64 @@ function createApplication(data, db = getDb()) {
       ? data.coverLetter.trim()
       : null;
 
-  // 1. Verify that referenced internship exists
-  const internship = db
+  const target = resolveTarget(db);
+  const id = `APP-${Date.now()}-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
+
+  if (target.mode === 'postgres') {
+    const internshipRes = await target.pool.query(
+      'SELECT id, title FROM internships WHERE id = $1',
+      [trimmedInternshipId]
+    );
+    if (internshipRes.rowCount === 0) {
+      throw buildMissingInternshipError(trimmedInternshipId);
+    }
+
+    const existingRes = await target.pool.query(
+      'SELECT id FROM applications WHERE internship_id = $1 AND lower(email) = $2',
+      [trimmedInternshipId, normalizedEmail]
+    );
+    if (existingRes.rowCount > 0) {
+      throw buildDuplicateApplicationError();
+    }
+
+    try {
+      const insertRes = await target.pool.query(
+        `INSERT INTO applications (id, internship_id, full_name, email, portfolio_url, cover_letter, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+         RETURNING id, internship_id, full_name, email, portfolio_url, cover_letter, created_at, updated_at`,
+        [id, trimmedInternshipId, trimmedFullName, normalizedEmail, sanitizedPortfolioUrl, sanitizedCoverLetter]
+      );
+      return formatApplication(insertRes.rows[0]);
+    } catch (err) {
+      if (err && err.code === '23505') {
+        throw buildDuplicateApplicationError();
+      }
+      throw err;
+    }
+  }
+
+  const internship = target.db
     .prepare('SELECT id, title FROM internships WHERE id = ?')
     .get(trimmedInternshipId);
 
   if (!internship) {
-    const error = new Error(`Internship with ID '${trimmedInternshipId}' does not exist`);
-    error.statusCode = 404;
-    error.errors = [
-      { field: 'internshipId', message: `Internship with ID '${trimmedInternshipId}' does not exist` }
-    ];
-    throw error;
+    throw buildMissingInternshipError(trimmedInternshipId);
   }
 
-  // 2. Check for duplicate application (same email for same internship)
-  const existingApp = db
+  const existingApp = target.db
     .prepare('SELECT id FROM applications WHERE internship_id = ? AND lower(email) = ?')
     .get(trimmedInternshipId, normalizedEmail);
 
   if (existingApp) {
-    const error = new Error('An application with this email already exists for this internship');
-    error.statusCode = 409;
-    error.errors = [
-      {
-        field: 'email',
-        message: 'An application with this email already exists for this internship'
-      }
-    ];
-    throw error;
+    throw buildDuplicateApplicationError();
   }
 
-  // 3. Generate unique application ID
-  const id = `APP-${Date.now()}-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
-
-  // 4. Parameterized SQL insert
-  db.prepare(`
+  target.db.prepare(`
     INSERT INTO applications (id, internship_id, full_name, email, portfolio_url, cover_letter, created_at, updated_at)
     VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
   `).run(id, trimmedInternshipId, trimmedFullName, normalizedEmail, sanitizedPortfolioUrl, sanitizedCoverLetter);
 
-  const row = db
+  const row = target.db
     .prepare(
       'SELECT id, internship_id, full_name, email, portfolio_url, cover_letter, created_at, updated_at FROM applications WHERE id = ?'
     )

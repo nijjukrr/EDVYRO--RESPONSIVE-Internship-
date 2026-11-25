@@ -8,12 +8,12 @@ const internshipController = {
   /**
    * GET /api/internships
    */
-  getAll(req, res, next) {
+  async getAll(req, res, next) {
     try {
       const page = req.query.page !== undefined ? Number(req.query.page) : 1;
       const limit = req.query.limit !== undefined ? Number(req.query.limit) : 10;
 
-      const result = internshipService.listInternships({ page, limit });
+      const result = await internshipService.listInternships({ page, limit });
 
       return res.status(200).json({
         status: 'success',
@@ -28,10 +28,10 @@ const internshipController = {
   /**
    * GET /api/internships/:id
    */
-  getById(req, res, next) {
+  async getById(req, res, next) {
     try {
       const { id } = req.params;
-      const internship = internshipService.getInternshipById(id);
+      const internship = await internshipService.getInternshipById(id);
 
       if (!internship) {
         return res.status(404).json({
@@ -53,9 +53,9 @@ const internshipController = {
   /**
    * POST /api/internships
    */
-  create(req, res, next) {
+  async create(req, res, next) {
     try {
-      const created = internshipService.createInternship(req.body);
+      const created = await internshipService.createInternship(req.body);
 
       return res.status(201).json({
         status: 'success',
@@ -69,10 +69,10 @@ const internshipController = {
   /**
    * PUT /api/internships/:id
    */
-  update(req, res, next) {
+  async update(req, res, next) {
     try {
       const { id } = req.params;
-      const updated = internshipService.updateInternship(id, req.body);
+      const updated = await internshipService.updateInternship(id, req.body);
 
       if (!updated) {
         return res.status(404).json({
@@ -94,10 +94,10 @@ const internshipController = {
   /**
    * DELETE /api/internships/:id
    */
-  delete(req, res, next) {
+  async delete(req, res, next) {
     try {
       const { id } = req.params;
-      const deleted = internshipService.deleteInternship(id);
+      const deleted = await internshipService.deleteInternship(id);
 
       if (!deleted) {
         return res.status(404).json({
@@ -120,9 +120,9 @@ const internshipController = {
   /**
    * GET /api/health
    */
-  healthCheck(req, res, next) {
+  async healthCheck(req, res, next) {
     try {
-      const dbConnected = internshipService.checkDatabaseHealth();
+      const dbConnected = await internshipService.checkDatabaseHealth();
 
       if (!dbConnected) {
         logger.error('health_check_failed', { database: 'disconnected' });

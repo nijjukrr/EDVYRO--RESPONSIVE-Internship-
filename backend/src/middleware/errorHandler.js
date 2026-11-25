@@ -1,8 +1,16 @@
 const { logger } = require('../utils/logger');
 
+const PG_ERROR_MAP = {
+  '23505': { status: 409, message: 'A record with the specified unique values already exists' },
+  '23503': { status: 409, message: 'Operation violates a referenced record constraint' },
+  '23502': { status: 400, message: 'Missing required database field' },
+  '23514': { status: 400, message: 'Database constraint violation' },
+  '22P02': { status: 400, message: 'Invalid data format in request' }
+};
+
 /**
  * Centralized Express error-handling middleware.
- * Ensures consistent error response contract without exposing raw SQL or stack traces.
+ * Ensures consistent error response contract without exposing raw SQL, PII, or stack traces.
  */
 function errorHandler(err, req, res, next) {
   // Handle JSON syntax error from express.json()
@@ -18,7 +26,7 @@ function errorHandler(err, req, res, next) {
     });
   }
 
-  // Handle explicit API errors with status codes (e.g. 409 Conflict, 400 Bad Request)
+  // Handle explicit API errors with status codes (e.g. 409 Conflict, 400 Bad Request, 404 Not Found)
   if (err.statusCode) {
     logger.warn('api_client_error', {
       method: req.method,
@@ -33,6 +41,20 @@ function errorHandler(err, req, res, next) {
     });
   }
 
+  // Catch PostgreSQL constraint / data exceptions cleanly without leaking raw SQL
+  if (err.code && PG_ERROR_MAP[err.code]) {
+    const mapped = PG_ERROR_MAP[err.code];
+    logger.error('postgres_constraint_error', {
+      code: err.code,
+      path: req.originalUrl
+    });
+    return res.status(mapped.status).json({
+      status: 'error',
+      message: mapped.message,
+      errors: []
+    });
+  }
+
   // Catch SQLite constraint errors if any bypass validation
   if (err.code && typeof err.code === 'string' && err.code.startsWith('SQLITE_')) {
     logger.error('database_constraint_error', {
@@ -43,6 +65,13 @@ function errorHandler(err, req, res, next) {
       return res.status(409).json({
         status: 'error',
         message: 'A record with the specified identifier already exists',
+        errors: []
+      });
+    }
+    if (err.code === 'SQLITE_CONSTRAINT_FOREIGNKEY') {
+      return res.status(409).json({
+        status: 'error',
+        message: 'Operation violates a referenced record constraint',
         errors: []
       });
     }

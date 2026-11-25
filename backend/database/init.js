@@ -1,28 +1,26 @@
-const { getDb, initDatabase } = require('../src/config/database');
+const { initializeActiveDatabase, closeDb } = require('../src/config/database');
 const { seedDatabase } = require('./seed');
 
 /**
- * Initializes the SQLite database schema and seeds initial data.
+ * Initializes the active database schema (SQLite or PostgreSQL) and seeds initial records safely.
  */
-function init() {
-  console.log('[Init] Initializing SQLite database schema...');
-  const db = getDb();
-  initDatabase(db);
-  console.log('[Init] Schema applied successfully.');
+async function init() {
+  const { mode } = await initializeActiveDatabase();
+  console.log(`[Init] Schema applied successfully (${mode}).`);
 
-  console.log('[Init] Seeding official EdVyro internship records...');
-  seedDatabase(db);
+  await seedDatabase();
   console.log('[Init] Database initialization complete.');
 }
 
 if (require.main === module) {
-  try {
-    init();
-    process.exit(0);
-  } catch (err) {
-    console.error('[Init Error]:', err.message);
-    process.exit(1);
-  }
+  init()
+    .then(() => closeDb())
+    .then(() => process.exit(0))
+    .catch(async (err) => {
+      console.error('[Init Error]:', err.message);
+      await closeDb().catch(() => {});
+      process.exit(1);
+    });
 }
 
 module.exports = { init };
