@@ -147,6 +147,10 @@ async function initializeDataset(dom, dataUrl = DEFAULT_DATA_URL) {
     updateListingView(dom);
   } catch (error) {
     console.error("[InternBoard] Failed to initialize internship listings:", error);
+    const openingsNote = document.getElementById("stat-openings-note");
+    if (openingsNote) {
+      openingsNote.textContent = "Dataset unavailable";
+    }
     if (dom.resultsCount) {
       dom.resultsCount.textContent = "Unable to load internship records.";
     }

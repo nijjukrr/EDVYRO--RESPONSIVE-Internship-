@@ -592,7 +592,12 @@ a {
 
 .controls-grid {
   display: grid;
-  grid-template-columns: minmax(220px, 1.6fr) repeat(4, minmax(150px, 1fr));
+  grid-template-columns:
+    minmax(210px, 1.4fr)
+    minmax(215px, 1.3fr)
+    minmax(130px, 0.85fr)
+    minmax(130px, 0.85fr)
+    minmax(150px, 0.95fr);
   gap: var(--space-4);
   align-items: end;
 }
