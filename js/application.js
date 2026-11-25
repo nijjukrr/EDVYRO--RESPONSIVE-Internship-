@@ -1,6 +1,19 @@
 import { getApiEndpoint } from "./config.js";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const MAX_PORTFOLIO_URL_LENGTH = 2048;
+
+function isSafeHttpUrl(value) {
+  if (typeof value !== "string" || !value.trim() || value.length > MAX_PORTFOLIO_URL_LENGTH) return false;
+  if (/[\s\u0000-\u001F\u007F]/.test(value) || value.startsWith("//") || value.includes('\\')) return false;
+  try {
+    const parsed = new URL(value);
+    return (parsed.protocol === "http:" || parsed.protocol === "https:") &&
+      Boolean(parsed.hostname) && !parsed.username && !parsed.password;
+  } catch {
+    return false;
+  }
+}
 
 let activeAppTriggerElement = null;
 let appKeydownHandlerRef = null;
@@ -34,6 +47,11 @@ export function validateApplicationClient(data) {
     errors.email = "Email address is required.";
   } else if (!EMAIL_PATTERN.test(email) || email.length > 255) {
     errors.email = "Please enter a valid email address (e.g. name@example.com).";
+  }
+
+  const portfolioUrl = (data.portfolioUrl || "").trim();
+  if (portfolioUrl && !isSafeHttpUrl(portfolioUrl)) {
+    errors.portfolioUrl = "Enter a valid HTTP or HTTPS portfolio URL without embedded credentials.";
   }
 
   const coverLetter = (data.coverLetter || "").trim();
@@ -76,6 +94,7 @@ function clearValidationErrors() {
   const errorIds = [
     "app-error-full-name",
     "app-error-email",
+    "app-error-portfolio-url",
     "app-error-cover-letter"
   ];
   errorIds.forEach((id) => {
@@ -86,6 +105,7 @@ function clearValidationErrors() {
   const inputIds = [
     "app-input-full-name",
     "app-input-email",
+    "app-input-portfolio-url",
     "app-input-cover-letter"
   ];
   inputIds.forEach((id) => {
@@ -107,6 +127,7 @@ function displayValidationErrors(errors) {
   const fieldMap = {
     fullName: { input: "app-input-full-name", msg: "app-error-full-name" },
     email: { input: "app-input-email", msg: "app-error-email" },
+    portfolioUrl: { input: "app-input-portfolio-url", msg: "app-error-portfolio-url" },
     coverLetter: { input: "app-input-cover-letter", msg: "app-error-cover-letter" }
   };
 
@@ -281,12 +302,14 @@ async function handleApplicationSubmit(event) {
   const rawInternshipId = document.getElementById("app-input-internship-id")?.value || "";
   const rawFullName = document.getElementById("app-input-full-name")?.value || "";
   const rawEmail = document.getElementById("app-input-email")?.value || "";
+  const rawPortfolioUrl = document.getElementById("app-input-portfolio-url")?.value || "";
   const rawCoverLetter = document.getElementById("app-input-cover-letter")?.value || "";
 
   const formData = {
     internshipId: rawInternshipId,
     fullName: rawFullName,
     email: rawEmail,
+    portfolioUrl: rawPortfolioUrl,
     coverLetter: rawCoverLetter
   };
 
@@ -316,6 +339,7 @@ async function handleApplicationSubmit(event) {
     internshipId: rawInternshipId.trim(),
     fullName: rawFullName.trim(),
     email: rawEmail.trim(),
+    portfolioUrl: rawPortfolioUrl.trim(),
     coverLetter: rawCoverLetter.trim()
   };
 
