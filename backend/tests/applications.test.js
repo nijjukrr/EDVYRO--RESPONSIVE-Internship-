@@ -335,6 +335,27 @@ describe('EdVyro Task 4 — Applications API & Security Tests', () => {
       assert.equal(browseRes.body.status, 'success');
       assert.equal(browseRes.body.data.length, 5);
     });
+
+    it('sanitizes PII and secrets in structured operational logger', () => {
+      const { sanitizeMeta } = require('../src/utils/logger');
+      const sanitized = sanitizeMeta({
+        applicationId: 'APP-123',
+        internshipId: 'INT-101',
+        email: 'secret.user@example.com',
+        fullName: 'Private Applicant',
+        coverLetter: 'Confidential cover letter text',
+        password: 'super-secret-password',
+        token: 'jwt-token-xyz'
+      });
+
+      assert.equal(sanitized.applicationId, 'APP-123');
+      assert.equal(sanitized.internshipId, 'INT-101');
+      assert.equal(sanitized.email, '[REDACTED]');
+      assert.equal(sanitized.fullName, '[REDACTED]');
+      assert.equal(sanitized.coverLetter, '[REDACTED]');
+      assert.equal(sanitized.password, '[REDACTED]');
+      assert.equal(sanitized.token, '[REDACTED]');
+    });
   });
 
   // ==========================================

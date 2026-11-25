@@ -152,6 +152,60 @@ describe('EdVyro Task 4 — Frontend Unit & Environment Tests', () => {
         /No valid internship records/
       );
     });
+
+    it('rejects unsafe URL protocols (javascript:, data:) and preserves https URLs', () => {
+      const unsafe = validateInternship({
+        id: 'INT-101',
+        title: 'Frontend Intern',
+        domain: 'Full Stack Development',
+        mode: 'Remote',
+        location: 'India',
+        skills: ['HTML'],
+        openings: 1,
+        applicationUrl: 'javascript:alert(1)'
+      });
+      assert.equal(unsafe.valid, true);
+      assert.equal(unsafe.internship.applicationUrl, null);
+
+      const safe = validateInternship({
+        id: 'INT-101',
+        title: 'Frontend Intern',
+        domain: 'Full Stack Development',
+        mode: 'Remote',
+        location: 'India',
+        skills: ['HTML'],
+        openings: 1,
+        applicationUrl: 'https://example.com/apply'
+      });
+      assert.equal(safe.valid, true);
+      assert.equal(safe.internship.applicationUrl, 'https://example.com/apply');
+    });
+  });
+
+  describe('Two-Page Architecture & Monochrome Design Integrity', () => {
+    it('verifies landing page links cleanly to ./internships/ and resolves dataset under /internships/', () => {
+      const landingHtml = fs.readFileSync(path.join(ROOT_DIR, 'index.html'), 'utf8');
+      assert.ok(landingHtml.includes('The Next Layer<br>of Intelligence'));
+      assert.ok(landingHtml.includes('href="./internships/"'));
+      assert.ok(landingHtml.includes('da9d53df-6d27-4b12-bdf6-aa9dc2622bdf.mp4'));
+
+      const portalHtml = fs.readFileSync(path.join(ROOT_DIR, 'internships', 'index.html'), 'utf8');
+      assert.ok(portalHtml.includes('src="../js/app.js"'));
+      assert.ok(portalHtml.includes('href="../css/style.css"'));
+
+      assert.equal(
+        getStaticDatasetUrl({
+          hostname: 'nijjukrr.github.io',
+          pathname: '/EDVYRO--RESPONSIVE-Internship-/internships/'
+        }),
+        '/EDVYRO--RESPONSIVE-Internship-/data/internships.json'
+      );
+    });
+
+    it('verifies monochrome portal CSS contains zero leftover purple/indigo hex codes', () => {
+      const css = fs.readFileSync(path.join(ROOT_DIR, 'css', 'style.css'), 'utf8');
+      assert.equal(/#4f46e5|#4338ca|#eef2ff|#c7d2fe|#2563eb/i.test(css), false);
+    });
   });
 
   describe('Data Loader & Failure Handling (js/data.js)', () => {

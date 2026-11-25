@@ -46,13 +46,28 @@ describe('EdVyro Task 3 — Internship REST API & SQLite Persistence', () => {
   // Health & Root Endpoints
   // ==========================================
   describe('Health & Metadata', () => {
-    it('GET /api/health returns HTTP 200 with api: running, database: connected', async () => {
+    it('GET /api/health returns HTTP 200 with service, api: running, database: connected', async () => {
       const res = await request(app).get('/api/health');
 
       assert.equal(res.status, 200);
       assert.equal(res.body.status, 'success');
+      assert.equal(res.body.data.service, 'InternBoard API');
       assert.equal(res.body.data.api, 'running');
       assert.equal(res.body.data.database, 'connected');
+    });
+
+    it('GET /api/health returns HTTP 503 safely if database check fails', async () => {
+      const internshipService = require('../src/services/internshipService');
+      const originalCheck = internshipService.checkDatabaseHealth;
+      internshipService.checkDatabaseHealth = () => false;
+      try {
+        const res = await request(app).get('/api/health');
+        assert.equal(res.status, 503);
+        assert.equal(res.body.status, 'error');
+        assert.ok(res.body.message.includes('Database'));
+      } finally {
+        internshipService.checkDatabaseHealth = originalCheck;
+      }
     });
 
     it('GET / returns root API index with status success', async () => {
