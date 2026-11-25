@@ -13,15 +13,15 @@ This backend provides a complete REST API for managing internship records. It pe
 
 ## 2. Technology Stack
 
-- **Runtime**: Node.js (v18.0.0+)
-- **Web Framework**: Express.js (v4.21+)
+- **Runtime**: Node.js (`>=18.0.0`)
+- **Web Framework**: Express.js (`^4.21.2`)
 - **Database Engine**: SQLite 3 (persistent file-based storage)
-- **Database Driver**: `better-sqlite3` (synchronous, high-performance, parameterized queries)
-- **Security Middleware**: `helmet` (v8.1.0) for HTTP response header hardening
-- **Rate Limiting**: `express-rate-limit` (v7.5.0) for DDoS/spam mitigation on submissions
-- **CORS Support**: `cors` (v2.8.5)
-- **Environment Management**: `dotenv`
-- **Testing Framework**: Node.js built-in test runner (`node:test`, `node:assert/strict`) with `supertest`
+- **Database Driver**: `better-sqlite3` (`^11.8.1`, synchronous, parameterized queries)
+- **Security Middleware**: `helmet` (`^8.3.0`) for HTTP response header hardening
+- **Rate Limiting**: `express-rate-limit` (`^8.7.5`) for DDoS/spam mitigation on submissions
+- **CORS Support**: Deliberate origin allowlist middleware in `src/app.js`
+- **Environment Management**: `dotenv` (`^16.4.7`)
+- **Testing Framework**: Node.js built-in test runner (`node:test`, `node:assert/strict`) with `supertest` (`^7.0.0`)
 
 ---
 
@@ -575,8 +575,8 @@ Automated test verification executed via Node.js native test runner (`node --tes
 
 ### Breakdown of Verified Test Suites
 
-#### Task 3 Tests (26 Tests — All Passing):
-1. Health check & root API index (`GET /api/health`, `GET /`, 404 handler)
+#### Task 3 Tests (27 Tests — All Passing):
+1. Health check (`200` with `service: "InternBoard API"`, `503` on DB failure) & root API index & 404 handler
 2. Read all 5 seeded official records (`GET /api/internships`)
 3. Pagination slicing (`page=1&limit=2`, `page=3&limit=2`, out-of-range pages)
 4. Pagination query validation (reject non-integers, negative numbers, `limit > 100`)
@@ -589,7 +589,7 @@ Automated test verification executed via Node.js native test runner (`node --tes
 11. Delete record (`DELETE /api/internships/:id` -> 200 OK and 404 verification)
 12. Database persistence verification across complete SQLite connection close and reopen
 
-#### Task 4 Tests (18 Tests — All Passing):
+#### Task 4 & Capstone Tests (19 Tests — All Passing):
 1. `creates a valid application and returns HTTP 201 with predictable envelope`
 2. `creates a valid application with omitted optional cover letter`
 3. `rejects duplicate application (same email for same internship) with HTTP 409`
@@ -607,7 +607,8 @@ Automated test verification executed via Node.js native test runner (`node --tes
 15. `verifies applicant personal information is NOT leaked through public internship listings`
 16. `triggers HTTP 429 Too Many Requests with standard rate-limit headers when exceeded`
 17. `confirms rate limiter does NOT block normal internship browsing`
-18. `persists submitted applications across database connection restarts`
+18. `sanitizes PII and secrets in structured operational logger`
+19. `persists submitted applications across database connection restarts`
 
 ---
 

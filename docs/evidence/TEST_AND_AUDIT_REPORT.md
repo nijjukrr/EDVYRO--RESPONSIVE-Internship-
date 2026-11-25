@@ -39,11 +39,12 @@ Executed via headless Google Chrome (Chrome DevTools Protocol) against local ful
   - Zero unlabeled form inputs (`unlabeledInputs: []` across search, filters, hidden ID, fullName, email, coverLetter).
   - Visible focus rings (`:focus-visible` `2px`/`3px` solid high-contrast border), `Escape` closes modals and mobile menus with focus restoration, `role="dialog"` + `aria-modal="true"`, `role="alert"` + `aria-live="polite"`, background video marked `aria-hidden="true"` and `pointer-events: none`.
   - Contrast: monochrome `#080808` and `#666666` on `#FFFFFF` provide `19.6:1` and `5.74:1` contrast respectively; `#FFFFFF` on `#050505` buttons provides `20.3:1`. *(Manual screen-reader voiceover walk-through recommended as final human review; automated checks do not represent formal WCAG certification.)*
-- **Measured Browser Performance (Local Chrome Navigation Timing on `/internships/`)**:
-  - `domContentLoadedEventEnd`: **255 ms**
-  - `loadEventEnd`: **357 ms**
-  - Console errors: **0** | Uncaught page errors: **0**
-  - *(Note: Formal Google Lighthouse CLI score was not separately generated in this terminal session; real Chrome Navigation Timing & asset transfer were measured directly via CDP.)*
+- **Measured Browser Performance (Live GitHub Pages Chrome Navigation Timing & Paint API)**:
+  - **Landing Page (`/`)**: `LCP`: **2032 ms**, `CLS`: **0**, `DOMContentLoaded`: **1733 ms** (`0` failed requests; CloudFront background MP4 streams asynchronously without blocking text render).
+  - **Monochrome Portal (`/internships/`)**: `FCP`: **300 ms**, `LCP`: **316 ms**, `CLS`: **0.0011**, `DOMContentLoaded`: **414 ms**, `loadEventEnd`: **415 ms**.
+  - **Local Full-Stack Portal (`/internships/`)**: `DOMContentLoaded`: **293 ms**, `loadEventEnd`: **355 ms**.
+  - **Console Errors**: **0** | **Uncaught Page Errors**: **0**
+  - **Tooling Limitation**: Neither `lighthouse` CLI nor `axe-core` CLI is installed in this environment, so numerical 0–100 Lighthouse category scores and `axe-core` JSON exports are not generated or fabricated; real Chrome PerformanceObserver vitals and Chrome DOM accessibility checks were executed instead.
 
 ---
 
@@ -62,9 +63,10 @@ Executed via headless Google Chrome (Chrome DevTools Protocol) against local ful
 
 ## 4. Captured Visual Evidence (`docs/evidence/`)
 
-- `landing-desktop-1440.png` — Dark cinematic landing page at `1440x900`
+- `landing-desktop-1440.png` — Dark cinematic landing page at `1440x900` (without `logoipsum`)
 - `landing-mobile-360.png` — Mobile cinematic landing stage at `360x800`
 - `portal-desktop-1440.png` — Monochrome white & black InternBoard portal at `1440x900`
+- `portal-watermelon-1440.png` — Watermelon Green & Black toggle mode at `1440x900` (persisted in `localStorage`)
 - `portal-mobile-360.png` — Mobile responsive stats & cards at `360x800`
 - `portal-application-modal.png` — Clean monochrome application modal (`INT-101`)
-- `portal-application-receipt.png` — Confirmed submission receipt with server-generated `APP-...` ID
+- `portal-application-receipt.png` — Confirmed submission receipt with server-generated `APP-...` ID (synthetic data)

@@ -187,7 +187,7 @@ All tests have been executed and verified using Node.js test suites and headless
 
 ### Functional Verification
 - **Dataset Loading**: 5/5 valid records loaded from `data/internships.json` (`INT-101` through `INT-105`) with 0 schema validation errors.
-- **Dynamic Statistics**: Calculated dynamically from dataset: 5 active listings, 9 total openings, 4 unique domains, 3 remote opportunities, 0 paid (accurately reflects dataset where stipend values are not specified).
+- **Dynamic Statistics**: Calculated dynamically from dataset: 5 active listings, 9 total openings, 4 unique domains, 3 remote opportunities, **N/A** paid (honestly reflects that the official dataset omits stipend fields).
 - **Search Verification**: Case-insensitive and trimmed search tested (`"  JAVASCRIPT "` returns `INT-101`, `"sql"` returns `INT-102` & `INT-104`, nonexistent terms display empty state). Hero search input and listing search input are fully synchronized.
 - **Domain & Mode Filtering**: Multiple simultaneous filter conditions tested (`Full Stack Development` + `Hybrid` returns `API Engineering Intern` `INT-102`).
 - **Sorting**: Verified `Title (A–Z)`, `Title (Z–A)`, `Openings (High to Low)`, and `Openings (Low to High)`.
@@ -215,25 +215,28 @@ All tests have been executed and verified using Node.js test suites and headless
 
 ---
 
-## 12. Screenshots
+## 12. Screenshots (Current Landing, Monochrome Portal & Watermelon Mode)
 
-| Desktop Hero & Stats (`1440px`) | Desktop Listings (`1440px`) |
+| Dark Cinematic Landing (`1440px`) | Monochrome White & Black Portal (`1440px`) |
 | --- | --- |
-| ![Desktop Hero](screenshots/desktop-1440.png) | ![Desktop Listings](screenshots/listings-desktop.png) |
+| ![Landing Page Desktop](docs/evidence/landing-desktop-1440.png) | ![Portal Desktop](docs/evidence/portal-desktop-1440.png) |
 
-| Details Modal | Empty State | Error State |
+| Watermelon Green & Black Toggle Mode (`1440px`) | Application Form Modal | Application Receipt |
 | --- | --- | --- |
-| ![Details Modal](screenshots/modal-details.png) | ![Empty State](screenshots/empty-state.png) | ![Error State](screenshots/error-state.png) |
+| ![Watermelon Mode](docs/evidence/portal-watermelon-1440.png) | ![Application Modal](docs/evidence/portal-application-modal.png) | ![Application Receipt](docs/evidence/portal-application-receipt.png) |
 
-| Tablet (`768px`) | Mobile (`360px`) |
+| Landing Mobile (`360px`) | Portal Mobile (`360px`) |
 | --- | --- |
-| ![Tablet View](screenshots/tablet-768.png) | ![Mobile View](screenshots/mobile-360.png) |
+| ![Landing Mobile](docs/evidence/landing-mobile-360.png) | ![Portal Mobile](docs/evidence/portal-mobile-360.png) |
+
+*(Legacy purple-themed Task 2 milestone captures remain archived separately in [`screenshots/`](./screenshots/README.md).)*
 
 ---
 
 ## 13. Deployment & Live URLs
 
-- **Live Deployed Website**: [https://nijjukrr.github.io/EDVYRO--RESPONSIVE-Internship-/](https://nijjukrr.github.io/EDVYRO--RESPONSIVE-Internship-/) *(Verified HTTP 200 on GitHub Pages)*
+- **Live Landing Page (`/`)**: [https://nijjukrr.github.io/EDVYRO--RESPONSIVE-Internship-/](https://nijjukrr.github.io/EDVYRO--RESPONSIVE-Internship-/) *(Verified HTTP 200 on GitHub Pages)*
+- **Live Internship Portal (`/internships/`)**: [https://nijjukrr.github.io/EDVYRO--RESPONSIVE-Internship-/internships/](https://nijjukrr.github.io/EDVYRO--RESPONSIVE-Internship-/internships/) *(Verified HTTP 200 on GitHub Pages)*
 - **GitHub Repository**: [https://github.com/nijjukrr/EDVYRO--RESPONSIVE-Internship-](https://github.com/nijjukrr/EDVYRO--RESPONSIVE-Internship-)
 - **Deployment Source**: Branch `main`, Directory `/ (root)`
 
@@ -270,10 +273,10 @@ git push origin main
 
 ## 15. Future Improvements
 
-- Add pagination or lazy loading if the dataset grows to hundreds of listings.
+- Add pagination UI controls if the dataset grows to hundreds of listings.
 - Support bookmarking/saving favorite internships in `localStorage`.
 - Add URL query parameter synchronization so filtered views can be shared directly via link.
-- Add optional dark mode toggle using CSS custom properties.
+- Deploy the Express + SQLite backend to a managed cloud host for public online application persistence.
 
 ---
 
@@ -801,7 +804,9 @@ Automated test suites executed via Node.js native test runner:
 - **Verified Visual Captures**:
   - Landing Page (`1440px` & `360px`): [`landing-desktop-1440.png`](./docs/evidence/landing-desktop-1440.png) | [`landing-mobile-360.png`](./docs/evidence/landing-mobile-360.png)
   - Monochrome Portal (`1440px` & `360px`): [`portal-desktop-1440.png`](./docs/evidence/portal-desktop-1440.png) | [`portal-mobile-360.png`](./docs/evidence/portal-mobile-360.png)
+  - Watermelon Green & Black Toggle Mode (`1440px`): [`portal-watermelon-1440.png`](./docs/evidence/portal-watermelon-1440.png) (`#theme-toggle` persists `data-theme="watermelon"` in `localStorage`)
   - Application Modal & Receipt: [`portal-application-modal.png`](./docs/evidence/portal-application-modal.png) | [`portal-application-receipt.png`](./docs/evidence/portal-application-receipt.png)
+- **Measured Browser Performance & Accessibility Audit Limitations**: Live Chrome CDP measured `FCP = 300 ms`, `LCP = 316 ms`, `CLS = 0.0011` on `/internships/` (`LCP = 2032 ms`, `CLS = 0` on `/`), with `0` unlabeled form controls and `0` console/HTTP errors. Formal `lighthouse` and `axe-core` CLI tools are not installed in this environment, so numerical Lighthouse category scores are not claimed.
 
 ---
 
