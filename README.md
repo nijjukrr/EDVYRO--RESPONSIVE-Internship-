@@ -136,7 +136,41 @@ Tested across mobile, tablet, and desktop viewports with zero horizontal overflo
 
 ---
 
-## 11. Screenshots
+## 11. Testing & Verification Results
+
+All tests have been executed and verified using Node.js test suites and headless Chrome DevTools Protocol (CDP) automation across both the local server and the live GitHub Pages deployment.
+
+### Functional Verification
+- **Dataset Loading**: 5/5 valid records loaded from `data/internships.json` (`INT-101` through `INT-105`) with 0 schema validation errors.
+- **Dynamic Statistics**: Calculated dynamically from dataset: 5 active listings, 9 total openings, 4 unique domains, 3 remote opportunities, 0 paid (accurately reflects dataset where stipend values are not specified).
+- **Search Verification**: Case-insensitive and trimmed search tested (`"  JAVASCRIPT "` returns `INT-101`, `"sql"` returns `INT-102` & `INT-104`, nonexistent terms display empty state). Hero search input and listing search input are fully synchronized.
+- **Domain & Mode Filtering**: Multiple simultaneous filter conditions tested (`Full Stack Development` + `Hybrid` returns `API Engineering Intern` `INT-102`).
+- **Sorting**: Verified `Title (A–Z)`, `Title (Z–A)`, `Openings (High to Low)`, and `Openings (Low to High)`.
+- **Clear Filters**: Restores full 5-card list, clears search inputs, and resets all dropdowns.
+- **Empty State**: Displays `"No internships found."` with active **Clear Filters** and **Reset Search** buttons.
+- **Error & Recovery State**: Simulated HTTP 500 error triggers error card with diagnostic message; clicking **Retry** successfully re-fetches and renders all listings.
+- **Modal & Accessibility**:
+  - Details modal displays all metadata, responsibilities, required skills, and clear application status without fabricating missing URLs.
+  - Initial focus moves to the top close button (`#modal-close-top`).
+  - Focus is trapped within modal interactive elements.
+  - Pressing `Escape` closes the modal and restores keyboard focus to the triggering **View Details** button.
+- **Form Accessibility**: 100% of `<input>` and `<select>` controls have explicit, programmatic `<label for="...">` associations.
+- **Zero Console Errors**: 0 uncaught exceptions and 0 network/console errors during standard operation.
+
+### Responsive Viewport Verification (Zero Horizontal Overflow)
+- **360px** (Small mobile): Passed (`scrollWidth <= innerWidth`), collapsible mobile hamburger menu verified.
+- **375px** (iPhone SE): Passed (`scrollWidth <= innerWidth`).
+- **390px** (iPhone 12/13/14): Passed (`scrollWidth <= innerWidth`).
+- **430px** (iPhone 14 Pro Max): Passed (`scrollWidth <= innerWidth`).
+- **768px** (Tablet portrait): Passed (`scrollWidth <= innerWidth`), 2-column stats and card layouts.
+- **1024px** (Tablet landscape / small laptop): Passed (`scrollWidth <= innerWidth`).
+- **1280px** (Desktop standard): Passed (`scrollWidth <= innerWidth`), 3-column card grid.
+- **1440px** (Desktop large): Passed (`scrollWidth <= innerWidth`).
+- **1920px** (Full HD desktop): Passed (`scrollWidth <= innerWidth`).
+
+---
+
+## 12. Screenshots
 
 | Desktop Hero & Stats (`1440px`) | Desktop Listings (`1440px`) |
 | --- | --- |
@@ -152,40 +186,40 @@ Tested across mobile, tablet, and desktop viewports with zero horizontal overflo
 
 ---
 
-## 12. Deployment Guide (GitHub Pages & Netlify)
+## 13. Deployment & Live URLs
 
-### Push to GitHub
-
-```bash
-git init
-git add .
-git commit -m "Initial commit: Responsive Internship Board"
-git branch -M main
-git remote add origin https://github.com/nijjukrr/EDVYRO--RESPONSIVE-Internship-.git
-git push -u origin main
-```
-
-### Enable GitHub Pages
-
-1. Open your repository on GitHub: `https://github.com/nijjukrr/EDVYRO--RESPONSIVE-Internship-`
-2. Go to **Settings → Pages**.
-3. Under **Build and deployment**, select **Deploy from a branch**.
-4. Choose branch **`main`** and folder **`/ (root)`**, then click **Save**.
-5. Once GitHub Pages finishes building, open the generated URL (`https://nijjukrr.github.io/EDVYRO--RESPONSIVE-Internship-/`) and verify in DevTools Network/Console that `style.css`, `responsive.css`, `js/*.js`, `data/internships.json`, and `assets/images/*.svg` all load with HTTP `200`.
-
-### Alternative: Deploy on Netlify
-
-1. Log in to Netlify and choose **Add new site → Import an existing project**.
-2. Connect your GitHub repository (`EDVYRO--RESPONSIVE-Internship-`).
-3. Leave the build command blank and set publish directory to `.` (repository root).
-4. Click **Deploy site** and verify the live URL.
+- **Live Deployed Website**: [https://nijjukrr.github.io/EDVYRO--RESPONSIVE-Internship-/](https://nijjukrr.github.io/EDVYRO--RESPONSIVE-Internship-/) *(Verified HTTP 200 on GitHub Pages)*
+- **GitHub Repository**: [https://github.com/nijjukrr/EDVYRO--RESPONSIVE-Internship-](https://github.com/nijjukrr/EDVYRO--RESPONSIVE-Internship-)
+- **Deployment Source**: Branch `main`, Directory `/ (root)`
 
 ---
 
-## 13. Deployment & Repository URLs
+## 14. Deployment Instructions (GitHub Pages & Netlify)
 
-- **GitHub Repository URL**: `https://github.com/nijjukrr/EDVYRO--RESPONSIVE-Internship-`
-- **Deployment URL**: Pending GitHub Pages activation (`https://nijjukrr.github.io/EDVYRO--RESPONSIVE-Internship-/` once enabled in repository Settings → Pages).
+### Pushing Updates to GitHub
+
+```bash
+git add .
+git commit -m "Update documentation or features"
+git push origin main
+```
+
+### GitHub Pages Configuration
+
+1. Open your repository on GitHub: `https://github.com/nijjukrr/EDVYRO--RESPONSIVE-Internship-`
+2. Go to **Settings → Pages**.
+3. Under **Build and deployment**, select:
+   - **Source**: `Deploy from a branch`
+   - **Branch**: `main`
+   - **Folder**: `/ (root)`
+4. Click **Save**. GitHub Pages automatically builds and deploys to `https://nijjukrr.github.io/EDVYRO--RESPONSIVE-Internship-/`.
+
+### Alternative: Deploy on Netlify
+
+1. Log in to [Netlify](https://www.netlify.com/) and choose **Add new site → Import an existing project**.
+2. Connect your GitHub repository (`EDVYRO--RESPONSIVE-Internship-`).
+3. Set build command to empty and publish directory to `.` (root).
+4. Click **Deploy site**.
 
 ---
 
