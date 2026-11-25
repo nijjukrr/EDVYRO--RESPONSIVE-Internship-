@@ -12,6 +12,7 @@ function formatApplication(row) {
     internshipId: row.internship_id,
     fullName: row.full_name,
     email: row.email,
+    portfolioUrl: row.portfolio_url || null,
     coverLetter: row.cover_letter || null,
     createdAt: row.created_at,
     updatedAt: row.updated_at
@@ -28,6 +29,10 @@ function createApplication(data, db = getDb()) {
   const trimmedInternshipId = data.internshipId.trim();
   const trimmedFullName = data.fullName.trim();
   const normalizedEmail = data.email.trim().toLowerCase();
+  const sanitizedPortfolioUrl =
+    data.portfolioUrl && typeof data.portfolioUrl === 'string' && data.portfolioUrl.trim()
+      ? data.portfolioUrl.trim()
+      : null;
   const sanitizedCoverLetter =
     data.coverLetter && typeof data.coverLetter === 'string' && data.coverLetter.trim()
       ? data.coverLetter.trim()
@@ -69,13 +74,13 @@ function createApplication(data, db = getDb()) {
 
   // 4. Parameterized SQL insert
   db.prepare(`
-    INSERT INTO applications (id, internship_id, full_name, email, cover_letter, created_at, updated_at)
-    VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-  `).run(id, trimmedInternshipId, trimmedFullName, normalizedEmail, sanitizedCoverLetter);
+    INSERT INTO applications (id, internship_id, full_name, email, portfolio_url, cover_letter, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+  `).run(id, trimmedInternshipId, trimmedFullName, normalizedEmail, sanitizedPortfolioUrl, sanitizedCoverLetter);
 
   const row = db
     .prepare(
-      'SELECT id, internship_id, full_name, email, cover_letter, created_at, updated_at FROM applications WHERE id = ?'
+      'SELECT id, internship_id, full_name, email, portfolio_url, cover_letter, created_at, updated_at FROM applications WHERE id = ?'
     )
     .get(id);
 
