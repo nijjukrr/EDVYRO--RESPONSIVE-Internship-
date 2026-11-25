@@ -1,5 +1,6 @@
 const express = require('express');
 const internshipRoutes = require('./routes/internshipRoutes');
+const applicationRoutes = require('./routes/applicationRoutes');
 const { errorHandler } = require('./middleware/errorHandler');
 
 const app = express();
@@ -24,16 +25,18 @@ app.use((req, res, next) => {
 app.get('/', (req, res) => {
   res.status(200).json({
     status: 'success',
-    message: 'EdVyro Task 3 — InternBoard REST API',
+    message: 'EdVyro Task 4 — InternBoard REST API with Secure Applications',
     endpoints: {
       health: '/api/health',
-      internships: '/api/internships'
+      internships: '/api/internships',
+      applications: '/api/applications'
     }
   });
 });
 
 // Mount REST API routes
 app.use('/api', internshipRoutes);
+app.use('/api', applicationRoutes);
 
 // Catch-all 404 handler
 app.use((req, res) => {
