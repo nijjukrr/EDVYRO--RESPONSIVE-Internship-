@@ -3,618 +3,680 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="InternBoard — A responsive, accessible internship listing platform built with HTML5, CSS3, and Vanilla JavaScript.">
-  <title>InternBoard — Responsive Internship Board</title>
+  <meta name="description" content="InternBoard — A smarter platform to discover internship opportunities, develop your skills, and build your future.">
+  <title>The Next Layer of Intelligence | InternBoard</title>
   <link rel="icon" type="image/svg+xml" href="./assets/images/logo.svg">
-  <link rel="stylesheet" href="./css/style.css">
-  <link rel="stylesheet" href="./css/responsive.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-black: #000000;
+      --text-white: #ffffff;
+      --text-silver: rgba(255, 255, 255, 0.80);
+      --text-muted: rgba(255, 255, 255, 0.56);
+      --border-subtle: rgba(255, 255, 255, 0.14);
+      --ease-cinematic: cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg-black);
+      color: var(--text-white);
+      font-family: "Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button {
+      font: inherit;
+      color: inherit;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    :focus-visible {
+      outline: 2px solid #ffffff;
+      outline-offset: 3px;
+    }
+
+    .skip-link {
+      position: absolute;
+      top: -120px;
+      left: 1.5rem;
+      z-index: 200;
+      padding: 0.75rem 1.25rem;
+      background-color: #ffffff;
+      color: #050505;
+      font-weight: 500;
+      font-size: 0.875rem;
+      border-radius: 9999px;
+      transition: top 160ms ease;
+    }
+
+    .skip-link:focus {
+      top: 1.25rem;
+    }
+
+    /* Full-Screen Cinematic Stage */
+    .stage {
+      position: relative;
+      min-height: 100vh;
+      min-height: 100dvh;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      background-color: var(--bg-black);
+      overflow: hidden;
+      padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+    }
+
+    /* Full-Bleed Background Video */
+    .stage-video {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Restrained Dark Overlays */
+    .overlay-side {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      background: linear-gradient(
+        90deg,
+        rgba(0, 0, 0, 0.82) 0%,
+        rgba(0, 0, 0, 0.56) 44%,
+        rgba(0, 0, 0, 0.18) 100%
+      );
+    }
+
+    .overlay-bottom {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      background: linear-gradient(
+        180deg,
+        rgba(0, 0, 0, 0.45) 0%,
+        rgba(0, 0, 0, 0) 24%,
+        rgba(0, 0, 0, 0) 64%,
+        rgba(0, 0, 0, 0.92) 100%
+      );
+    }
+
+    .container {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      max-width: 1320px;
+      margin-inline: auto;
+      padding-inline: clamp(1.25rem, 4vw, 3.5rem);
+    }
+
+    /* Header */
+    .landing-header {
+      position: relative;
+      z-index: 20;
+      padding-block: 1.5rem;
+    }
+
+    .landing-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 2rem;
+    }
+
+    .brand-mark-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 2.75rem;
+      height: 2.75rem;
+      border-radius: 0.5rem;
+      opacity: 0;
+      transform: translateY(8px);
+      animation: fadeUp 480ms var(--ease-cinematic) 0ms forwards;
+    }
+
+    .nav-center {
+      display: flex;
+      align-items: center;
+      gap: 2.25rem;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      opacity: 0;
+      transform: translateY(6px);
+      animation: fadeUp 480ms var(--ease-cinematic) 50ms forwards;
+    }
+
+    .nav-center a {
+      font-size: 0.9375rem;
+      font-weight: 400;
+      letter-spacing: -0.01em;
+      color: var(--text-silver);
+      padding: 0.35rem 0.25rem;
+      transition: color 180ms ease;
+    }
+
+    .nav-center a:hover {
+      color: var(--text-white);
+    }
+
+    .header-cta {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 2.5rem;
+      padding: 0.55rem 1.35rem;
+      background-color: #ffffff;
+      color: #050505;
+      border-radius: 9999px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+      white-space: nowrap;
+      transition: background-color 180ms ease, transform 180ms ease;
+      opacity: 0;
+      transform: translateY(6px);
+      animation: fadeUp 480ms var(--ease-cinematic) 80ms forwards;
+    }
+
+    .header-cta:hover {
+      background-color: #e6e6e6;
+    }
+
+    /* Mobile Hamburger Button */
+    .mobile-toggle {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 2.75rem;
+      height: 2.75rem;
+      padding: 0;
+      background-color: rgba(18, 18, 18, 0.72);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 9999px;
+      cursor: pointer;
+      z-index: 60;
+      position: relative;
+    }
+
+    .mobile-toggle-lines {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      width: 1.125rem;
+    }
+
+    .mobile-toggle-line {
+      display: block;
+      width: 100%;
+      height: 1.5px;
+      background-color: #ffffff;
+      transition: transform 220ms var(--ease-cinematic), opacity 180ms ease;
+    }
+
+    .mobile-toggle[aria-expanded="true"] .mobile-toggle-line:first-child {
+      transform: translateY(3.25px) rotate(45deg);
+    }
+
+    .mobile-toggle[aria-expanded="true"] .mobile-toggle-line:last-child {
+      transform: translateY(-3.25px) rotate(-45deg);
+    }
+
+    /* Full-Screen Mobile Navigation Overlay */
+    .mobile-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      background-color: rgba(0, 0, 0, 0.96);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 5.5rem 1.75rem 2.5rem;
+    }
+
+    .mobile-overlay-list {
+      list-style: none;
+      margin: 0 0 2.5rem;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    .mobile-overlay-list a {
+      display: inline-block;
+      font-size: 1.75rem;
+      font-weight: 400;
+      letter-spacing: -0.025em;
+      color: var(--text-silver);
+      padding-block: 0.25rem;
+      transition: color 180ms ease;
+    }
+
+    .mobile-overlay-list a:hover {
+      color: var(--text-white);
+    }
+
+    .mobile-overlay-cta {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      min-height: 3.125rem;
+      background-color: #ffffff;
+      color: #050505;
+      border-radius: 9999px;
+      font-size: 1rem;
+      font-weight: 500;
+    }
+
+    /* Hero Composition */
+    .hero-stage {
+      position: relative;
+      z-index: 2;
+      flex: 1 1 auto;
+      display: flex;
+      align-items: center;
+      padding-block: clamp(2.5rem, 6vh, 4.5rem);
+    }
+
+    .hero-copy {
+      max-width: 42rem;
+    }
+
+    .hero-headline {
+      margin: 0 0 1.5rem;
+      font-size: clamp(2.5rem, 6.2vw, 4.75rem);
+      font-weight: 400;
+      line-height: 1.04;
+      letter-spacing: -0.035em;
+      color: var(--text-white);
+      opacity: 0;
+      transform: translateY(14px);
+      animation: fadeUp 520ms var(--ease-cinematic) 100ms forwards;
+    }
+
+    .hero-subhead {
+      margin: 0 0 2.25rem;
+      max-width: 31rem;
+      font-size: clamp(1rem, 1.5vw, 1.1875rem);
+      font-weight: 400;
+      line-height: 1.58;
+      letter-spacing: -0.01em;
+      color: var(--text-silver);
+      opacity: 0;
+      transform: translateY(12px);
+      animation: fadeUp 520ms var(--ease-cinematic) 150ms forwards;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.875rem;
+      opacity: 0;
+      transform: translateY(10px);
+      animation: fadeUp 520ms var(--ease-cinematic) 200ms forwards;
+    }
+
+    .btn-cta-primary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 3rem;
+      padding: 0.75rem 1.75rem;
+      background-color: #ffffff;
+      color: #050505;
+      border: 1px solid #ffffff;
+      border-radius: 9999px;
+      font-size: 0.9375rem;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+      transition: background-color 180ms ease, transform 180ms ease;
+    }
+
+    .btn-cta-primary:hover {
+      background-color: #e6e6e6;
+      border-color: #e6e6e6;
+    }
+
+    .btn-cta-secondary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 3rem;
+      padding: 0.75rem 1.75rem;
+      background-color: rgba(0, 0, 0, 0.45);
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      border-radius: 9999px;
+      font-size: 0.9375rem;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+      transition: background-color 180ms ease, border-color 180ms ease;
+    }
+
+    .btn-cta-secondary:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.65);
+    }
+
+    /* Monochrome Partner Placeholder Strip */
+    .partner-footer {
+      position: relative;
+      z-index: 2;
+      padding-block: 1.75rem 2.25rem;
+      opacity: 0;
+      transform: translateY(8px);
+      animation: fadeUp 520ms var(--ease-cinematic) 240ms forwards;
+    }
+
+    .partner-strip {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      align-items: center;
+      gap: 1.5rem 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .partner-mark {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55rem;
+      color: var(--text-muted);
+      font-size: 0.9375rem;
+      font-weight: 500;
+      letter-spacing: -0.02em;
+      user-select: none;
+    }
+
+    .partner-mark svg {
+      flex-shrink: 0;
+    }
+
+    @keyframes fadeUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Tablet Breakpoint */
+    @media (max-width: 900px) {
+      .nav-center {
+        gap: 1.35rem;
+      }
+    }
+
+    /* Mobile Breakpoint */
+    @media (max-width: 768px) {
+      .nav-center,
+      .header-cta {
+        display: none;
+      }
+
+      .mobile-toggle {
+        display: inline-flex;
+      }
+
+      .overlay-side {
+        background: linear-gradient(
+          180deg,
+          rgba(0, 0, 0, 0.72) 0%,
+          rgba(0, 0, 0, 0.45) 45%,
+          rgba(0, 0, 0, 0.9) 100%
+        );
+      }
+
+      .hero-stage {
+        align-items: flex-end;
+        padding-block: 3rem 2rem;
+      }
+
+      .hero-actions {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .btn-cta-primary,
+      .btn-cta-secondary {
+        width: 100%;
+      }
+
+      .partner-strip {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1rem 1.25rem;
+      }
+    }
+
+    /* Respect Reduced Motion */
+    @media (prefers-reduced-motion: reduce) {
+      .brand-mark-link,
+      .nav-center,
+      .header-cta,
+      .hero-headline,
+      .hero-subhead,
+      .hero-actions,
+      .partner-footer {
+        opacity: 1;
+        transform: none;
+        animation: none;
+      }
+
+      .mobile-toggle-line,
+      .header-cta,
+      .btn-cta-primary,
+      .btn-cta-secondary,
+      .nav-center a {
+        transition: none;
+      }
+    }
+  </style>
 </head>
 <body>
   <a href="#main-content" class="skip-link">Skip to main content</a>
 
-  <!-- Sticky Navigation Bar -->
-  <header class="site-header" id="site-header">
-    <nav class="navbar container" aria-label="Primary navigation">
-      <a href="#home" class="brand" aria-label="InternBoard Home">
-        <img src="./assets/images/logo.svg" alt="" class="brand-logo" width="36" height="36" aria-hidden="true">
-        <span class="brand-name">InternBoard</span>
-      </a>
-
-      <button
-        type="button"
-        class="nav-toggle"
-        id="nav-toggle"
-        aria-expanded="false"
-        aria-controls="primary-nav-menu"
-        aria-label="Open navigation menu"
+  <div class="stage">
+    <!-- Full-Bleed Background Video -->
+    <video
+      id="bg-video"
+      class="stage-video"
+      autoplay
+      muted
+      loop
+      playsinline
+      preload="auto"
+      aria-hidden="true"
+    >
+      <source
+        src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260808_112712_da9d53df-6d27-4b12-bdf6-aa9dc2622bdf.mp4"
+        type="video/mp4"
       >
-        <span class="nav-toggle-bar" aria-hidden="true"></span>
-        <span class="nav-toggle-bar" aria-hidden="true"></span>
-        <span class="nav-toggle-bar" aria-hidden="true"></span>
-      </button>
+    </video>
+    <div class="overlay-side" aria-hidden="true"></div>
+    <div class="overlay-bottom" aria-hidden="true"></div>
 
-      <div class="nav-menu" id="primary-nav-menu">
-        <ul class="nav-links">
-          <li><a href="#home" class="nav-link">Home</a></li>
-          <li><a href="#internships" class="nav-link">Explore Internships</a></li>
-          <li><a href="#about" class="nav-link">About</a></li>
-          <li><a href="#contact" class="nav-link">Contact</a></li>
-        </ul>
-        <a href="#internships" class="btn btn-primary nav-cta">Explore Opportunities</a>
-      </div>
-    </nav>
-  </header>
-
-  <main id="main-content">
-    <!-- Hero Section -->
-    <section class="hero-section" id="home" aria-labelledby="hero-heading">
-      <div class="container hero-grid">
-        <div class="hero-content">
-          <p class="hero-eyebrow">EdVyro Internship Discovery Portal</p>
-          <h1 id="hero-heading" class="hero-title">
-            Find Your Next Internship. Build Your Future.
-          </h1>
-          <p class="hero-description">
-            Discover opportunities, explore career paths, and gain practical experience through internships designed to help you grow.
-          </p>
-
-          <form class="hero-search-form" id="hero-search-form" role="search" aria-label="Quick internship search">
-            <label for="hero-search-input" class="sr-only">
-              Search internships by title, company, domain, or skills
-            </label>
-            <div class="hero-search-group">
-              <svg class="search-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" aria-hidden="true">
-                <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"></circle>
-                <path d="M16.5 16.5L21 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
-              </svg>
-              <input
-                type="search"
-                id="hero-search-input"
-                class="hero-search-input"
-                name="q"
-                placeholder="Search by role, domain, or skill (e.g. JavaScript, SQL)..."
-                autocomplete="off"
-              >
-              <button type="submit" class="btn btn-primary hero-search-btn">Search</button>
-            </div>
-          </form>
-
-          <div class="hero-actions">
-            <a href="#internships" class="btn btn-secondary">Explore Internships</a>
-            <a href="#about" class="btn btn-ghost">How It Works</a>
-          </div>
-
-          <dl class="hero-mini-stats" aria-label="Live dataset summary">
-            <div class="hero-mini-stat">
-              <dt>Active Listings</dt>
-              <dd id="hero-stat-total">—</dd>
-            </div>
-            <div class="hero-mini-stat">
-              <dt>Total Openings</dt>
-              <dd id="hero-stat-openings">—</dd>
-            </div>
-            <div class="hero-mini-stat">
-              <dt>Domains</dt>
-              <dd id="hero-stat-domains">—</dd>
-            </div>
-          </dl>
-        </div>
-
-        <div class="hero-visual">
-          <img
-            src="./assets/images/hero-illustration.svg"
-            alt="Illustration showing an internship search bar, skill tags, domain filters, and career progress chart"
-            class="hero-illustration"
-            width="520"
-            height="400"
-          >
-        </div>
-      </div>
-    </section>
-
-    <!-- Dynamic Statistics Section -->
-    <section class="stats-section" id="statistics" aria-labelledby="stats-heading">
-      <div class="container">
-        <h2 id="stats-heading" class="sr-only">Internship Statistics</h2>
-        <div class="stats-grid">
-          <article class="stat-card">
-            <div class="stat-icon stat-icon-indigo" aria-hidden="true">
-              <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
-                <rect x="3" y="7" width="18" height="13" rx="2" stroke="currentColor" stroke-width="2"></rect>
-                <path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="currentColor" stroke-width="2"></path>
-              </svg>
-            </div>
-            <div class="stat-body">
-              <p class="stat-label">Total Internships</p>
-              <p class="stat-value" id="stat-total">—</p>
-              <p class="stat-subtext" id="stat-openings-note">Loading records...</p>
-            </div>
-          </article>
-
-          <article class="stat-card">
-            <div class="stat-icon stat-icon-blue" aria-hidden="true">
-              <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
-                <path d="M4 6h16M4 12h10M4 18h7" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
-                <circle cx="18" cy="15" r="3" stroke="currentColor" stroke-width="2"></circle>
-              </svg>
-            </div>
-            <div class="stat-body">
-              <p class="stat-label">Available Domains</p>
-              <p class="stat-value" id="stat-domains">—</p>
-              <p class="stat-subtext" id="stat-domains-note">Across current dataset</p>
-            </div>
-          </article>
-
-          <article class="stat-card">
-            <div class="stat-icon stat-icon-emerald" aria-hidden="true">
-              <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
-                <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"></circle>
-                <path d="M3.5 12h17M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" stroke="currentColor" stroke-width="1.8"></path>
-              </svg>
-            </div>
-            <div class="stat-body">
-              <p class="stat-label">Remote Opportunities</p>
-              <p class="stat-value" id="stat-remote">—</p>
-              <p class="stat-subtext" id="stat-remote-note">Work-from-anywhere roles</p>
-            </div>
-          </article>
-
-          <article class="stat-card">
-            <div class="stat-icon stat-icon-amber" aria-hidden="true">
-              <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
-                <path d="M12 2v20M17 6.5c0-1.9-2.2-3.5-5-3.5s-5 1.6-5 3.5S9.2 10 12 10s5 1.6 5 3.5S14.8 17 12 17s-5-1.6-5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
-              </svg>
-            </div>
-            <div class="stat-body">
-              <p class="stat-label">Paid Opportunities</p>
-              <p class="stat-value" id="stat-paid">—</p>
-              <p class="stat-subtext" id="stat-paid-note">Calculated from dataset</p>
-            </div>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <!-- Internship Listing Section -->
-    <section class="listings-section" id="internships" aria-labelledby="listings-heading">
-      <div class="container">
-        <div class="section-header">
-          <div>
-            <h2 id="listings-heading" class="section-title">Explore Internship Opportunities</h2>
-            <p class="section-subtitle">
-              Filter by domain, work mode, stipend status, or keyword to find roles matching your skills.
-            </p>
-          </div>
-        </div>
-
-        <!-- Search and Filter Controls -->
-        <div class="controls-panel" role="region" aria-label="Search and filter controls">
-          <div class="controls-grid">
-            <div class="control-group control-search">
-              <label for="search-input" class="control-label">Search Internships</label>
-              <div class="input-with-icon">
-                <svg class="input-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
-                  <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"></circle>
-                  <path d="M16.5 16.5L21 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
-                </svg>
-                <input
-                  type="search"
-                  id="search-input"
-                  class="control-input"
-                  placeholder="Title, company, skill, domain, location..."
-                  autocomplete="off"
-                >
-              </div>
-            </div>
-
-            <div class="control-group">
-              <label for="domain-filter" class="control-label">Domain</label>
-              <select id="domain-filter" class="control-select">
-                <option value="all">All Domains</option>
-              </select>
-            </div>
-
-            <div class="control-group">
-              <label for="mode-filter" class="control-label">Work Mode</label>
-              <select id="mode-filter" class="control-select">
-                <option value="all">All Modes</option>
-                <option value="Remote">Remote</option>
-                <option value="Hybrid">Hybrid</option>
-                <option value="On-site">On-site</option>
-              </select>
-            </div>
-
-            <div class="control-group">
-              <label for="stipend-filter" class="control-label">Stipend</label>
-              <select id="stipend-filter" class="control-select">
-                <option value="all">All Stipends</option>
-                <option value="paid">Paid</option>
-                <option value="unpaid">Unpaid</option>
-                <option value="unspecified">Not Specified</option>
-              </select>
-            </div>
-
-            <div class="control-group">
-              <label for="sort-select" class="control-label">Sort By</label>
-              <select id="sort-select" class="control-select">
-                <option value="default">Default Order</option>
-                <option value="title-asc">Title (A–Z)</option>
-                <option value="title-desc">Title (Z–A)</option>
-                <option value="openings-desc">Openings (High to Low)</option>
-                <option value="openings-asc">Openings (Low to High)</option>
-                <option value="domain-asc">Domain (A–Z)</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="controls-footer">
-            <div class="results-meta" aria-live="polite" aria-atomic="true">
-              <p id="results-count" class="results-count">Loading internships...</p>
-            </div>
-            <button type="button" id="clear-filters-btn" class="btn btn-ghost btn-sm">
-              Clear Filters
-            </button>
-          </div>
-        </div>
-
-        <!-- Cards Grid / Empty / Error / Loading Container -->
-        <div id="internship-results" class="internship-results">
-          <div class="loading-state" role="status" aria-live="polite">
-            <div class="spinner" aria-hidden="true"></div>
-            <p>Loading internship opportunities...</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- About Section -->
-    <section class="about-section" id="about" aria-labelledby="about-heading">
-      <div class="container">
-        <div class="about-header">
-          <p class="section-eyebrow">About InternBoard</p>
-          <h2 id="about-heading" class="section-title">Your Career Journey Starts Here.</h2>
-          <p class="about-lead">
-            InternBoard is designed to help students explore structured internship opportunities, identify required technical skills, and understand role formats across domains without visual clutter.
-          </p>
-        </div>
-
-        <div class="about-grid">
-          <article class="about-card">
-            <div class="about-icon" aria-hidden="true">01</div>
-            <h3 class="about-card-title">Skill-Focused Discovery</h3>
-            <p class="about-card-text">
-              Quickly scan required technologies, tools, and domain expectations for each internship so you can plan your learning path effectively.
-            </p>
-          </article>
-
-          <article class="about-card">
-            <div class="about-icon" aria-hidden="true">02</div>
-            <h3 class="about-card-title">Transparent Information</h3>
-            <p class="about-card-text">
-              Every listing reflects only verified dataset records. Fields omitted by the source dataset are clearly marked rather than guessed or fabricated.
-            </p>
-          </article>
-
-          <article class="about-card">
-            <div class="about-icon" aria-hidden="true">03</div>
-            <h3 class="about-card-title">Keyboard &amp; Screen-Reader Ready</h3>
-            <p class="about-card-text">
-              Built with semantic HTML5, clear focus indicators, accessible form labels, and full keyboard support across mobile, tablet, and desktop screens.
-            </p>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <!-- Contact Section -->
-    <section class="contact-section" id="contact" aria-labelledby="contact-heading">
-      <div class="container">
-        <div class="contact-card">
-          <div class="contact-content">
-            <p class="section-eyebrow">Contact &amp; Project Links</p>
-            <h2 id="contact-heading" class="section-title">Questions or Feedback?</h2>
-            <p class="contact-text">
-              This project was created as Task 2 for the EdVyro Full Stack Development Internship using pure HTML5, CSS3, and Vanilla JavaScript (ES6+).
-            </p>
-          </div>
-          <div class="contact-details">
-            <div class="contact-item">
-              <span class="contact-label">Contact Email (Placeholder)</span>
-              <a href="mailto:contact@internboard.example" class="contact-link">contact@internboard.example</a>
-            </div>
-            <div class="contact-item">
-              <span class="contact-label">Source Repository</span>
-              <a
-                href="https://github.com/nijjukrr/EDVYRO--RESPONSIVE-Internship-"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="contact-link"
-              >
-                github.com/nijjukrr/EDVYRO--RESPONSIVE-Internship-
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <!-- Footer -->
-  <footer class="site-footer">
-    <div class="container footer-grid">
-      <div class="footer-brand">
-        <a href="#home" class="brand footer-logo-link">
-          <img src="./assets/images/logo.svg" alt="" class="brand-logo" width="32" height="32" aria-hidden="true">
-          <span class="brand-name">InternBoard</span>
+    <!-- Landing Header -->
+    <header class="landing-header">
+      <nav class="container landing-nav" aria-label="Landing navigation">
+        <a href="./" class="brand-mark-link" aria-label="InternBoard Home">
+          <!-- Abstract Geometric S-Shaped Lightning/Bolt Mark (White & Silver) -->
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+            <path d="M20.5 3L6.5 17.5H16.5L11.5 29L25.5 14.5H15.5L20.5 3Z" fill="#FFFFFF" />
+            <path d="M20.5 3L15.5 14.5H25.5L20.5 3Z" fill="#C4C4C8" opacity="0.72" />
+          </svg>
         </a>
-        <p class="footer-description">
-          A clean, accessible internship discovery board built with semantic HTML, modern CSS, and modular ES6+ JavaScript.
-        </p>
-      </div>
 
-      <div class="footer-col">
-        <h3 class="footer-heading">Navigation</h3>
-        <ul class="footer-list">
-          <li><a href="#home">Home</a></li>
-          <li><a href="#internships">Explore Internships</a></li>
-          <li><a href="#about">About</a></li>
-          <li><a href="#contact">Contact</a></li>
+        <ul class="nav-center">
+          <li><a href="./internships/#about">About</a></li>
+          <li><a href="./internships/#statistics">Features</a></li>
+          <li><a href="./internships/#faq">FAQ</a></li>
+          <li><a href="./internships/#contact">Contact</a></li>
         </ul>
-      </div>
 
-      <div class="footer-col">
-        <h3 class="footer-heading">Project &amp; Contact</h3>
-        <ul class="footer-list">
-          <li><span>Email: contact@internboard.example (placeholder)</span></li>
-          <li>
-            <a
-              href="https://github.com/nijjukrr/EDVYRO--RESPONSIVE-Internship-"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              GitHub Repository
-            </a>
-          </li>
-          <li><span>Dataset: EdVyro Sample Records</span></li>
-        </ul>
-      </div>
-    </div>
+        <a href="./internships/" class="header-cta" id="landing-header-cta">Get Started</a>
 
-    <div class="container footer-bottom">
-      <p class="copyright">
-        &copy; <span id="footer-year">2026</span> InternBoard. Portfolio project built for EdVyro Full Stack Development Internship &ndash; Task 2.
-      </p>
-    </div>
-  </footer>
-
-  <!-- Internship Details Modal -->
-  <div
-    class="modal-overlay"
-    id="internship-modal"
-    role="dialog"
-    aria-modal="true"
-    aria-labelledby="modal-title"
-    aria-describedby="modal-description"
-    hidden
-  >
-    <div class="modal-backdrop" data-modal-close></div>
-    <div class="modal-dialog" role="document">
-      <div class="modal-header">
-        <div class="modal-title-wrap">
-          <div class="modal-badges">
-            <span class="badge badge-id" id="modal-id"></span>
-            <span class="badge badge-domain" id="modal-domain"></span>
-            <span class="badge badge-mode" id="modal-mode"></span>
-          </div>
-          <h2 id="modal-title" class="modal-title"></h2>
-          <p id="modal-company" class="modal-company"></p>
-        </div>
         <button
           type="button"
-          class="modal-close-icon"
-          id="modal-close-top"
-          aria-label="Close internship details"
+          class="mobile-toggle"
+          id="landing-nav-toggle"
+          aria-expanded="false"
+          aria-controls="landing-mobile-menu"
+          aria-label="Open navigation menu"
         >
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" aria-hidden="true">
-            <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"></path>
-          </svg>
+          <span class="mobile-toggle-lines" aria-hidden="true">
+            <span class="mobile-toggle-line"></span>
+            <span class="mobile-toggle-line"></span>
+          </span>
         </button>
-      </div>
+      </nav>
+    </header>
 
-      <div class="modal-body">
-        <dl class="modal-meta-grid" aria-label="Internship key facts">
-          <div class="modal-meta-item">
-            <dt>Location</dt>
-            <dd id="modal-location"></dd>
-          </div>
-          <div class="modal-meta-item">
-            <dt>Work Mode</dt>
-            <dd id="modal-work-mode"></dd>
-          </div>
-          <div class="modal-meta-item">
-            <dt>Openings</dt>
-            <dd id="modal-openings"></dd>
-          </div>
-          <div class="modal-meta-item">
-            <dt>Duration</dt>
-            <dd id="modal-duration"></dd>
-          </div>
-          <div class="modal-meta-item">
-            <dt>Stipend</dt>
-            <dd id="modal-stipend"></dd>
-          </div>
-          <div class="modal-meta-item">
-            <dt>Eligibility</dt>
-            <dd id="modal-eligibility"></dd>
-          </div>
-        </dl>
-
-        <section class="modal-section" aria-labelledby="modal-desc-heading">
-          <h3 id="modal-desc-heading" class="modal-section-title">Description</h3>
-          <p id="modal-description" class="modal-section-text"></p>
-        </section>
-
-        <section class="modal-section" aria-labelledby="modal-resp-heading">
-          <h3 id="modal-resp-heading" class="modal-section-title">Responsibilities</h3>
-          <div id="modal-responsibilities" class="modal-section-text"></div>
-        </section>
-
-        <section class="modal-section" aria-labelledby="modal-skills-heading">
-          <h3 id="modal-skills-heading" class="modal-section-title">Required Skills</h3>
-          <ul id="modal-skills" class="skill-tags"></ul>
-        </section>
-
-        <section class="modal-section modal-application-box" aria-labelledby="modal-apply-heading">
-          <h3 id="modal-apply-heading" class="modal-section-title">Application Information</h3>
-          <div id="modal-application" class="modal-section-text"></div>
-        </section>
-      </div>
-
-      <div class="modal-footer modal-footer-split">
-        <button type="button" class="btn btn-ghost" id="modal-close-bottom">Close</button>
-        <button type="button" class="btn btn-primary" id="modal-apply-btn">Apply Now</button>
-      </div>
+    <!-- Full-Screen Dark Mobile Navigation Overlay -->
+    <div
+      class="mobile-overlay"
+      id="landing-mobile-menu"
+      aria-hidden="true"
+      hidden
+    >
+      <ul class="mobile-overlay-list">
+        <li><a href="./internships/#about">About</a></li>
+        <li><a href="./internships/#statistics">Features</a></li>
+        <li><a href="./internships/#faq">FAQ</a></li>
+        <li><a href="./internships/#contact">Contact</a></li>
+      </ul>
+      <a href="./internships/" class="mobile-overlay-cta">Get Started</a>
     </div>
-  </div>
 
-  <!-- Internship Application Modal -->
-  <div
-    class="modal-overlay"
-    id="application-modal"
-    role="dialog"
-    aria-modal="true"
-    aria-labelledby="app-modal-title"
-    hidden
-  >
-    <div class="modal-backdrop" data-app-modal-close></div>
-    <div class="modal-dialog" role="document">
-      <div class="modal-header">
-        <div class="modal-title-wrap">
-          <div class="modal-badges">
-            <span class="badge badge-id" id="app-modal-id">INT-101</span>
-            <span class="badge badge-domain" id="app-modal-domain">Full Stack Development</span>
-            <span class="badge badge-mode" id="app-modal-mode">Remote</span>
-          </div>
-          <h2 id="app-modal-title" class="modal-title">Apply for Internship</h2>
-          <p id="app-modal-company" class="modal-company">EdVyro Verified Opportunity</p>
-        </div>
-        <button
-          type="button"
-          class="modal-close-icon"
-          id="app-modal-close-top"
-          aria-label="Close application form"
-        >
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" aria-hidden="true">
-            <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"></path>
-          </svg>
-        </button>
-      </div>
-
-      <div class="modal-body" id="app-modal-body">
-        <!-- Form Alert for server errors / messages -->
-        <div class="form-alert form-alert-error" id="app-form-alert" role="alert" hidden>
-          <svg class="alert-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" aria-hidden="true">
-            <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"></circle>
-            <path d="M12 8v5M12 16h.01" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"></path>
-          </svg>
-          <span id="app-form-alert-msg"></span>
-        </div>
-
-        <!-- Success confirmation state -->
-        <div class="app-success-state" id="app-success-state" role="status" hidden>
-          <div class="success-icon-wrap" aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="36" height="36" fill="none">
-              <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"></circle>
-              <path d="M8 12l2.5 2.5L16 9" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"></path>
-            </svg>
-          </div>
-          <h3 class="success-title">Application Submitted!</h3>
-          <p class="success-text" id="app-success-desc">
-            Your application has been received and safely recorded in the database.
+    <!-- Hero Content -->
+    <main id="main-content" class="hero-stage">
+      <div class="container">
+        <div class="hero-copy">
+          <h1 class="hero-headline">
+            The Next Layer<br>of Intelligence
+          </h1>
+          <p class="hero-subhead">
+            A smarter platform to discover opportunities, develop your skills, and build your future.
           </p>
-          <div class="app-receipt-box">
-            <div class="receipt-item">
-              <span class="receipt-label">Application ID</span>
-              <strong id="app-receipt-id" class="receipt-value">—</strong>
-            </div>
-            <div class="receipt-item">
-              <span class="receipt-label">Position</span>
-              <strong id="app-receipt-position" class="receipt-value">—</strong>
-            </div>
+          <div class="hero-actions">
+            <a href="./internships/" class="btn-cta-primary" id="landing-get-started">Get Started</a>
+            <a href="./internships/#internships" class="btn-cta-secondary" id="landing-explore">Explore Internships</a>
           </div>
-          <button type="button" class="btn btn-primary" id="app-success-done-btn">Done</button>
         </div>
-
-        <!-- Main Application Form -->
-        <form id="application-form" class="application-form" novalidate>
-          <label for="app-input-internship-id" class="sr-only">Selected Internship ID</label>
-          <input type="hidden" id="app-input-internship-id" name="internshipId" value="">
-
-          <div class="form-group">
-            <label for="app-input-full-name" class="form-label">
-              Full Name <span class="required-star" aria-hidden="true">*</span>
-            </label>
-            <input
-              type="text"
-              id="app-input-full-name"
-              name="fullName"
-              class="form-control"
-              placeholder="e.g. Alex Sharma"
-              autocomplete="name"
-              required
-              aria-describedby="app-error-full-name"
-            >
-            <p class="form-error-msg" id="app-error-full-name" role="alert"></p>
-          </div>
-
-          <div class="form-group">
-            <label for="app-input-email" class="form-label">
-              Email Address <span class="required-star" aria-hidden="true">*</span>
-            </label>
-            <input
-              type="email"
-              id="app-input-email"
-              name="email"
-              class="form-control"
-              placeholder="alex@example.com"
-              autocomplete="email"
-              required
-              aria-describedby="app-error-email"
-            >
-            <p class="form-error-msg" id="app-error-email" role="alert"></p>
-          </div>
-
-          <div class="form-group">
-            <div class="form-label-row">
-              <label for="app-input-cover-letter" class="form-label">
-                Cover Letter / Interest <span class="optional-tag">(Optional)</span>
-              </label>
-              <span class="char-counter" id="app-char-counter" aria-live="polite">0 / 1000</span>
-            </div>
-            <textarea
-              id="app-input-cover-letter"
-              name="coverLetter"
-              class="form-control form-textarea"
-              rows="4"
-              maxlength="1000"
-              placeholder="Briefly describe your relevant experience, technical skills, and interest in this role..."
-              aria-describedby="app-error-cover-letter"
-            ></textarea>
-            <p class="form-error-msg" id="app-error-cover-letter" role="alert"></p>
-          </div>
-
-          <div class="form-actions">
-            <button type="button" class="btn btn-ghost" id="app-modal-cancel">Cancel</button>
-            <button type="submit" class="btn btn-primary" id="app-submit-btn">
-              <span class="btn-spinner" id="app-btn-spinner" aria-hidden="true" hidden></span>
-              <span id="app-btn-text">Submit Application</span>
-            </button>
-          </div>
-        </form>
       </div>
-    </div>
+    </main>
+
+    <!-- Monochrome Placeholder Partner Strip -->
+    <footer class="partner-footer" aria-label="Ecosystem placeholder marks">
+      <div class="container">
+        <div class="partner-strip">
+          <div class="partner-mark" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.8" />
+              <circle cx="12" cy="12" r="3" fill="currentColor" />
+            </svg>
+            <span>logoipsum</span>
+          </div>
+
+          <div class="partner-mark" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <rect x="4" y="4" width="7" height="7" rx="1.5" fill="currentColor" />
+              <rect x="13" y="13" width="7" height="7" rx="1.5" fill="currentColor" />
+              <rect x="13" y="4" width="7" height="7" rx="3.5" stroke="currentColor" stroke-width="1.8" />
+            </svg>
+            <span>logoipsum.</span>
+          </div>
+
+          <div class="partner-mark" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M12 3L21 19H3L12 3Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" />
+            </svg>
+            <span>logoipsum</span>
+          </div>
+
+          <div class="partner-mark" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M4 12H20M12 4V20" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+              <circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.8" />
+            </svg>
+            <span>logoipsum</span>
+          </div>
+        </div>
+      </div>
+    </footer>
   </div>
 
-  <script type="module" src="./js/app.js"></script>
+  <script>
+    (function () {
+      var video = document.getElementById('bg-video');
+      if (video) {
+        video.addEventListener('error', function () {
+          video.hidden = true;
+        });
+      }
+
+      var toggle = document.getElementById('landing-nav-toggle');
+      var menu = document.getElementById('landing-mobile-menu');
+      if (!toggle || !menu) return;
+
+      function setMenuOpen(isOpen) {
+        menu.hidden = !isOpen;
+        menu.setAttribute('aria-hidden', String(!isOpen));
+        toggle.setAttribute('aria-expanded', String(isOpen));
+        toggle.setAttribute('aria-label', isOpen ? 'Close navigation menu' : 'Open navigation menu');
+        document.body.style.overflow = isOpen ? 'hidden' : '';
+      }
+
+      toggle.addEventListener('click', function () {
+        var expanded = toggle.getAttribute('aria-expanded') === 'true';
+        setMenuOpen(!expanded);
+      });
+
+      menu.querySelectorAll('a').forEach(function (link) {
+        link.addEventListener('click', function () {
+          setMenuOpen(false);
+        });
+      });
+
+      document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape' && toggle.getAttribute('aria-expanded') === 'true') {
+          setMenuOpen(false);
+          toggle.focus();
+        }
+      });
+
+      window.addEventListener('resize', function () {
+        if (window.innerWidth > 768 && toggle.getAttribute('aria-expanded') === 'true') {
+          setMenuOpen(false);
+        }
+      });
+    })();
+  </script>
 </body>
 </html>

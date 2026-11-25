@@ -38,6 +38,7 @@
   }
 
   .about-grid,
+  .faq-grid,
   .contact-card,
   .footer-grid {
     grid-template-columns: 1fr;
