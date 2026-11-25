@@ -5,6 +5,10 @@
 
 ---
 
+> **Task 4 reviewer entry point:** Read [TASK-4-SUBMISSION.md](./TASK-4-SUBMISSION.md) for the capstone checklist, architecture, API routes, setup, test commands, evidence links, and deployment status.
+>
+> **Deployment note:** GitHub Pages serves the frontend only. Real application submissions require the Express API to be deployed and configured; the static demo does not pretend to save applications.
+
 ## 1. Project Overview
 
 **InternBoard** is a responsive, accessible internship discovery and secure application portal built in a clean purple/indigo and white design system (`#4F46E5` / `#FFFFFF` / `#F8FAFC`), featuring real-time search, multi-domain and work-mode filters, sorting, accessible details modal, interactive application form with dual-layer validation, SQLite persistence, and honest GitHub Pages static demo handling.
