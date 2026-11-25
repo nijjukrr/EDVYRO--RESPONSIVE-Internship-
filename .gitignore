@@ -1,0 +1,18 @@
+# OS and Editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Node / Testing artifacts (if used locally)
+node_modules/
+npm-debug.log*
+.env
+.env.local
+
+# Logs and temporary files
+*.log
+tmp/
+temp/
