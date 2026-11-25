@@ -1,6 +1,6 @@
 # InternBoard Backend — REST API and Persistent Data
 
-> **EdVyro Full Stack Development Internship — Task 3**  
+> **EdVyro Full Stack Development Internship — Tasks 3 & 4**  
 > A production-structured Node.js and Express REST API backed by persistent SQLite storage, parameterized SQL queries, centralized input validation, and predictable response contracts.
 
 ---
@@ -54,6 +54,7 @@ CREATE TABLE IF NOT EXISTS applications (
   internship_id TEXT NOT NULL,
   full_name TEXT NOT NULL CHECK(length(trim(full_name)) > 0),
   email TEXT NOT NULL CHECK(length(trim(email)) > 0),
+  portfolio_url TEXT,
   cover_letter TEXT,
   created_at TEXT NOT NULL DEFAULT (CURRENT_TIMESTAMP),
   FOREIGN KEY (internship_id) REFERENCES internships(id) ON DELETE CASCADE,
@@ -73,7 +74,8 @@ CREATE INDEX IF NOT EXISTS idx_applications_email ON applications(email);
 - **`applications.id`**: Unique string identifier prefixed with `APP-` and a nanoid token.
 - **`applications.internship_id`**: Foreign key pointing to `internships.id` with `ON DELETE CASCADE`.
 - **`applications.full_name`**: 2–100 characters trimmed text.
-- **`applications.email`**: Validated RFC 5322 lowercase email address.
+- **`applications.email`**: Validated email address, normalized to lowercase.
+- **`applications.portfolio_url`**: Optional absolute HTTP/HTTPS URL; rejects unsafe schemes, embedded credentials, and URLs over 2,048 characters.
 - **`applications.cover_letter`**: Optional text (up to 1,000 characters).
 - **`UNIQUE(internship_id, email)`**: Database constraint strictly preventing duplicate applications for the same role from the same applicant.
 - **`created_at`** / **`updated_at`**: Timestamps in UTC `YYYY-MM-DD HH:MM:SS`.
@@ -437,6 +439,7 @@ Every endpoint strictly adheres to predictable JSON envelopes:
   "internshipId": "INT-101",
   "fullName": "Jane Doe",
   "email": "jane.doe@example.com",
+  "portfolioUrl": "https://github.com/jane-doe",
   "coverLetter": "Passionate frontend developer experienced with Vanilla JS and CSS Grid."
 }
 ```
@@ -553,7 +556,7 @@ Response (`400 Bad Request`):
    - Never concatenates user inputs into SQL strings, completely neutralising SQL injection attacks. Verified with malicious payloads (e.g. `'; DROP TABLE applications; --`).
 
 4. **Applicant Data Privacy**:
-   - Applicant personal information (`fullName`, `email`, `coverLetter`) is isolated to the `applications` table.
+   - Applicant personal information (`fullName`, `email`, `portfolioUrl`, `coverLetter`) is isolated to the `applications` table.
    - Public internship endpoints (`GET /api/internships`, `GET /api/internships/:id`) never expose applicant identities or submission counts.
    - Server logs never output applicant emails, personal identifiers, or sensitive payload details.
 
