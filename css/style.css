@@ -127,6 +127,11 @@ a {
   text-decoration: none;
 }
 
+/* Guarantee HTML [hidden] is never overridden by flex/grid/inline-block rules */
+[hidden] {
+  display: none !important;
+}
+
 /* Accessibility Helpers */
 .sr-only {
   position: absolute;
