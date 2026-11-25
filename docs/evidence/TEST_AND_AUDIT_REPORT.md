@@ -4,20 +4,21 @@
 
 ### Backend Suite (`cd backend; npm test`)
 - **Runner**: Node.js built-in test runner (`node --test tests/**/*.test.js`) with isolated temporary SQLite databases
-- **Result**: **46 / 46 Passed (0 Failed, 0 Skipped)** across 11 suites
+- **Previous recorded baseline**: **46 / 46 Passed (0 Failed, 0 Skipped)** across 11 suites.
+- **Task-4 URL validation extension**: two additional integration tests now cover rejection of unsafe portfolio URLs and persistence of a safe HTTPS URL. The updated backend suite must be rerun with `npm test` (or the repository CI workflow) before reporting a new total; the prior 46/46 result does not include these two tests.
   - `backend/tests/internships.test.js`: 27 passed (Health 200 & 503 DB failure, Root index, 404 handler, Read, Pagination & validation, Create, Update, Delete, Persistence)
   - `backend/tests/applications.test.js`: 19 passed (Valid `201`, Optional cover letter, Duplicate & case-insensitive `409`, Cross-role `201`, Missing `internshipId` `400`, Unknown role `404`, Missing name `400`, Invalid email `400`, Oversized cover letter `400`, Unsupported props `400`, Helmet headers, CORS allowlist, SQLi immunity, Public PII leak check, Rate limit `429` + headers, Unthrottled `GET /api/internships`, Logger PII redaction, Persistence)
 
 ### Frontend Unit & Environment Suite (`node --test tests/frontend.test.mjs`)
 - **Runner**: Node.js built-in test runner (`node --test tests/frontend.test.mjs`)
-- **Result**: **16 / 16 Passed (0 Failed, 0 Skipped)** across 7 suites
+- **Result after Task-4 portfolio URL validation update**: **17 / 17 Passed (0 Failed, 0 Skipped)** across 7 suites (verified locally during this revision).
   - GitHub Pages host detection & `null` API base URL without override
   - Repository-relative static JSON resolution under `/` (with/without trailing slash)
   - Localhost API routing (`http://localhost:5000/api` / `/api`) and `window.__API_BASE_URL__` override
   - Preservation of all 5 official records (`INT-101`–`INT-105`, 9 openings, 4 domains, 3 Remote)
   - Valid empty `[]` dataset handling, malformed payload rejection, unsafe URL (`javascript:`) rejection
   - Single-page root `index.html` integrity & Purple/Indigo + White CSS verification (no cinematic video landing page, no monochrome overrides, no Watermelon theme toggle)
-  - Search, filters, sorting, and client-side application validation
+  - Search, filters, sorting, client-side application validation, and unsafe portfolio URL rejection
 
 ---
 
@@ -35,7 +36,7 @@ Executed via headless Google Chrome (Chrome DevTools Protocol) against local ful
   - Tested `360px`, `375px`, `390px`, `430px`, `768px`, `1024px`, `1280px`, `1440px`: `scrollWidth <= innerWidth` passed at every width.
 - **Accessibility Checks Performed**:
   - Single `<h1>` (`h1Count: 1`).
-  - Zero unlabeled form inputs (`unlabeled: []` across search, filters, hidden ID, fullName, email, coverLetter).
+  - Zero unlabeled form inputs (`unlabeled: []` across search, filters, hidden ID, fullName, email, portfolio URL, coverLetter).
   - Visible `:focus-visible` outlines, `Escape` closes modals and mobile menus with focus restoration, `role="dialog"` + `aria-modal="true"`, `role="alert"` + `aria-live="polite"`.
   - Contrast: `#0F172A` primary text and `#475569` secondary text on `#FFFFFF` / `#F8FAFC`, plus `#FFFFFF` on `#4F46E5` primary CTA buttons meet WCAG AA contrast thresholds. *(Manual screen-reader voiceover walk-through recommended as final human review; automated checks do not represent formal WCAG certification.)*
 - **Measured Browser Performance (Local Full-Stack Chrome Navigation Timing & Paint API)**:
