@@ -6,6 +6,8 @@
 
 const SENSITIVE_KEYS = new Set([
   'email',
+  'portfolioUrl',
+  'portfolio_url',
   'fullName',
   'full_name',
   'coverLetter',
