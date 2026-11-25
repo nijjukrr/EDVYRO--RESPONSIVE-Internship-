@@ -112,6 +112,27 @@ describe('EdVyro Task 4 — Frontend Unit & Environment Tests', () => {
         'https://api.internboard.example/v1/applications'
       );
     });
+
+    it('reads <meta name="internboard-api-url"> when window override is absent', () => {
+      const origDoc = globalThis.document;
+      globalThis.document = {
+        querySelector: (sel) =>
+          sel === 'meta[name="internboard-api-url"]'
+            ? { getAttribute: () => 'https://internboard-api.example/api/' }
+            : null
+      };
+      try {
+        const ghLocation = {
+          hostname: 'nijjukrr.github.io',
+          pathname: '/EDVYRO--RESPONSIVE-Internship-/',
+          port: ''
+        };
+        assert.equal(getApiBaseUrl(ghLocation), 'https://internboard-api.example/api');
+        assert.equal(getApiEndpoint('/applications', ghLocation), 'https://internboard-api.example/api/applications');
+      } finally {
+        globalThis.document = origDoc;
+      }
+    });
   });
 
   describe('Official Dataset & Validation (data/internships.json, js/validation.js)', () => {
@@ -187,12 +208,17 @@ describe('EdVyro Task 4 — Frontend Unit & Environment Tests', () => {
       const portalHtml = fs.readFileSync(path.join(ROOT_DIR, 'index.html'), 'utf8');
       assert.ok(portalHtml.includes('id="internships"'));
       assert.ok(portalHtml.includes('id="application-form"'));
+      assert.ok(portalHtml.includes('id="app-input-portfolio-url"'));
+      assert.ok(portalHtml.includes('name="internboard-api-url"'));
       assert.ok(portalHtml.includes('src="./js/app.js"'));
       assert.ok(portalHtml.includes('href="./css/style.css"'));
       assert.ok(portalHtml.includes('href="./assets/images/logo.svg"'));
 
       assert.equal(fs.existsSync(path.join(ROOT_DIR, 'internships', 'index.html')), false);
       assert.equal(/\.mp4|The Next Layer|logoipsum|theme-toggle|watermelon/i.test(portalHtml), false);
+
+      const appJs = fs.readFileSync(path.join(ROOT_DIR, 'js', 'application.js'), 'utf8');
+      assert.equal(/cannot run the Express API/i.test(appJs), false);
 
       assert.equal(
         getStaticDatasetUrl({
@@ -303,12 +329,14 @@ describe('EdVyro Task 4 — Frontend Unit & Environment Tests', () => {
         internshipId: '',
         fullName: '   ',
         email: 'bad-email',
+        portfolioUrl: 'javascript:alert(1)',
         coverLetter: 'x'.repeat(1001)
       });
       assert.equal(missingRes.isValid, false);
       assert.ok(missingRes.errors.internshipId);
       assert.ok(missingRes.errors.fullName);
       assert.ok(missingRes.errors.email);
+      assert.ok(missingRes.errors.portfolioUrl);
       assert.ok(missingRes.errors.coverLetter);
 
       const validRes = validateApplicationClient({

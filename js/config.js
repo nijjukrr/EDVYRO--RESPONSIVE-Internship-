@@ -2,14 +2,22 @@
  * Central API and hosting environment configuration for InternBoard.
  *
  * Environment detection rules:
- * 1. Explicit override via window.__API_BASE_URL__ or localStorage 'INTERNBOARD_API_URL'
- * 2. GitHub Pages static hosting (*.github.io) -> no backend API (null), uses static dataset
+ * 1. Explicit override via window.__API_BASE_URL__, localStorage 'INTERNBOARD_API_URL',
+ *    or <meta name="internboard-api-url" content="...">
+ * 2. Production Render API constant (DEFAULT_PRODUCTION_API_URL) when set after deployment
  * 3. Backend-served origin (port 5000) -> relative '/api'
  * 4. Local frontend dev (localhost / 127.0.0.1 on non-5000 port) -> 'http://localhost:5000/api'
- * 5. Other custom hosts -> relative '/api'
+ * 5. GitHub Pages static hosting (*.github.io) without configured Render URL -> null (static fallback)
+ * 6. Other custom hosts -> relative '/api'
  */
 
 const DEFAULT_GH_PAGES_REPO_BASE = '/EDVYRO--RESPONSIVE-Internship-';
+
+/**
+ * Configure this to the deployed Render Web Service API URL (e.g. 'https://internboard-api.onrender.com/api')
+ * once deployed, or set <meta name="internboard-api-url" content="..."> in index.html.
+ */
+export const DEFAULT_PRODUCTION_API_URL = '';
 
 /**
  * Normalizes a base URL by stripping trailing slashes.
@@ -21,7 +29,23 @@ function normalizeBaseUrl(url) {
 }
 
 /**
- * Checks whether an explicit custom API base URL has been configured.
+ * Reads an optional API URL configured in <meta name="internboard-api-url">.
+ * @returns {string | null}
+ */
+export function getMetaApiBaseUrl() {
+  if (typeof document === 'undefined' || typeof document.querySelector !== 'function') {
+    return null;
+  }
+  const meta = document.querySelector('meta[name="internboard-api-url"]');
+  const content = meta?.getAttribute('content');
+  if (typeof content === 'string' && content.trim()) {
+    return normalizeBaseUrl(content);
+  }
+  return null;
+}
+
+/**
+ * Checks whether an explicit custom or production API base URL has been configured.
  * @returns {string | null}
  */
 export function getCustomApiBaseUrl() {
@@ -38,6 +62,15 @@ export function getCustomApiBaseUrl() {
     } catch {
       // Ignore storage access errors in restricted browser contexts
     }
+  }
+
+  const metaUrl = getMetaApiBaseUrl();
+  if (metaUrl) {
+    return metaUrl;
+  }
+
+  if (typeof DEFAULT_PRODUCTION_API_URL === 'string' && DEFAULT_PRODUCTION_API_URL.trim()) {
+    return normalizeBaseUrl(DEFAULT_PRODUCTION_API_URL);
   }
 
   return null;
@@ -82,7 +115,7 @@ export function getStaticDatasetUrl(loc = typeof window !== 'undefined' ? window
 }
 
 /**
- * Resolves the active backend API base URL, or null when running in static-only GitHub Pages mode.
+ * Resolves the active backend API base URL, or null when static-only fallback applies.
  * @param {Location | { hostname?: string, pathname?: string, port?: string }} [loc]
  * @returns {string | null}
  */
@@ -121,16 +154,16 @@ export function isBackendAvailable(loc = typeof window !== 'undefined' ? window.
 }
 
 /**
- * Returns the full URL for a given API endpoint, or null when running in static-only mode.
- * @param {string} endpoint - Endpoint path (e.g. '/internships' or '/applications')
+ * Resolves a full API endpoint URL, returning null when backend calls are disabled.
+ * @param {string} path
  * @param {Location | { hostname?: string, pathname?: string, port?: string }} [loc]
  * @returns {string | null}
  */
-export function getApiEndpoint(endpoint, loc = typeof window !== 'undefined' ? window.location : undefined) {
-  const base = getApiBaseUrl(loc);
-  if (!base) {
+export function getApiEndpoint(path, loc = typeof window !== 'undefined' ? window.location : undefined) {
+  const baseUrl = getApiBaseUrl(loc);
+  if (!baseUrl) {
     return null;
   }
-  const cleanPath = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
-  return `${base}${cleanPath}`;
+  const cleanPath = path.startsWith('/') ? path : `/${path}`;
+  return `${baseUrl}${cleanPath}`;
 }

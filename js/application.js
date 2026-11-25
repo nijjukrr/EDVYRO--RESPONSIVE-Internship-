@@ -324,7 +324,7 @@ async function handleApplicationSubmit(event) {
   const endpoint = getApiEndpoint("/applications");
   if (!endpoint) {
     showFormAlert(
-      "Static Demo Mode: GitHub Pages hosts only static frontend files and cannot run the Express API or SQLite database. Your application was not submitted. To submit and save applications, run the backend server locally (http://localhost:5000) and open the local site."
+      "Backend API URL is not configured for this environment yet. Set <meta name=\"internboard-api-url\"> or window.__API_BASE_URL__ to your deployed Render API URL (including /api), or run the backend locally (http://localhost:5000) to submit applications."
     );
     return;
   }
@@ -425,7 +425,7 @@ async function handleApplicationSubmit(event) {
   } catch (networkError) {
     console.error("[InternBoard] Application submission network failure:", networkError);
     showFormAlert(
-      "Unable to connect to the backend server. Please verify that the API is running (http://localhost:5000) and try again."
+      "Unable to reach the backend API server right now. If this is hosted on Render Free Tier, the service may be waking up—please wait a few seconds and try submitting again."
     );
   } finally {
     // 6. Restore submit button (retaining entered data for retry)

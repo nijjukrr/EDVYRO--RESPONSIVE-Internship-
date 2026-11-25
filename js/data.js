@@ -63,7 +63,7 @@ export async function loadInternships(targetUrl = null) {
     }
 
     throw new Error(
-      `Unable to connect to the internship API at ${url}. Please ensure the backend server is running (npm start in /backend) or click Retry.`
+      `Unable to connect to the internship API at ${url}. If hosted on Render Free Tier, the backend may be waking up—please wait a few seconds and click Retry.`
     );
   }
 

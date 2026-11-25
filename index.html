@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="InternBoard — A responsive, accessible internship listing and secure application portal built with HTML5, CSS3, and Vanilla JavaScript.">
+  <meta name="internboard-api-url" content="">
   <title>InternBoard — Responsive Internship Board</title>
   <link rel="icon" type="image/svg+xml" href="./assets/images/logo.svg">
   <link rel="stylesheet" href="./css/style.css">
@@ -319,21 +320,21 @@
           <article class="faq-item">
             <h3 class="faq-question">How are internship listings loaded?</h3>
             <p class="faq-answer">
-              When running locally with the Express server, listings load directly from the persistent SQLite database via <code>GET /api/internships</code>. On GitHub Pages static hosting, listings load directly from the verified static dataset.
+              Listings load from the Express API via <code>GET /api/internships</code> (backed by SQLite locally or Neon PostgreSQL in production), with automatic fallback to the verified static dataset when no backend URL is configured.
             </p>
           </article>
 
           <article class="faq-item">
             <h3 class="faq-question">How is application submission protected?</h3>
             <p class="faq-answer">
-              Submissions pass client-side and server-side schema checks, parameterized SQLite inserts, duplicate application constraints per role and email, Helmet security headers, and rate limiting on <code>POST /api/applications</code>.
+              Submissions pass client-side and server-side schema checks, parameterized SQL inserts, duplicate application constraints per role and email, Helmet security headers, and rate limiting on <code>POST /api/applications</code>.
             </p>
           </article>
 
           <article class="faq-item">
-            <h3 class="faq-question">Why does GitHub Pages show Static Demo Mode on submit?</h3>
+            <h3 class="faq-question">How does GitHub Pages connect to the backend API?</h3>
             <p class="faq-answer">
-              GitHub Pages serves static files only and cannot run Node.js or SQLite. Instead of faking a confirmation receipt, the portal explains how to submit real applications using the local Express API.
+              GitHub Pages serves the static frontend and connects over HTTPS to the deployed Render Express API and Neon PostgreSQL database via the configured API base URL.
             </p>
           </article>
 
@@ -355,7 +356,7 @@
             <p class="section-eyebrow">Contact &amp; Project Links</p>
             <h2 id="contact-heading" class="section-title">Questions or Feedback?</h2>
             <p class="contact-text">
-              Built for the EdVyro Full Stack Development Internship using semantic HTML5, modern CSS3, Vanilla JavaScript ES modules, Express.js, and SQLite.
+              Built for the EdVyro Full Stack Development Internship using semantic HTML5, modern CSS3, Vanilla JavaScript ES modules, Express.js, SQLite (local), and Neon PostgreSQL (production).
             </p>
           </div>
           <div class="contact-details">
@@ -389,7 +390,7 @@
           <span class="brand-name">InternBoard</span>
         </a>
         <p class="footer-description">
-          A clean, accessible internship discovery and secure application platform built with semantic HTML, modern CSS, Vanilla ES6+ modules, Express, and SQLite.
+          A clean, accessible internship discovery and secure application platform built with semantic HTML, modern CSS, Vanilla ES6+ modules, Express, SQLite, and Neon PostgreSQL.
         </p>
       </div>
 
