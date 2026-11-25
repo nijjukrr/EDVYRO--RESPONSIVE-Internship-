@@ -3,15 +3,15 @@
 ## 1. Automated Test Results
 
 ### Backend Suite (`cd backend; npm test`)
-- **Runner**: Node.js built-in test runner (`node --test tests/**/*.test.js`) with isolated temporary SQLite databases
-- **Previous recorded baseline**: **46 / 46 Passed (0 Failed, 0 Skipped)** across 11 suites.
-- **Task-4 URL validation extension**: two additional integration tests now cover rejection of unsafe portfolio URLs and persistence of a safe HTTPS URL. The updated backend suite must be rerun with `npm test` (or the repository CI workflow) before reporting a new total; the prior 46/46 result does not include these two tests.
+- **Runner**: Node.js built-in test runner (`node --test tests/**/*.test.js`) with isolated temporary SQLite databases and parameterized PostgreSQL integration emulator
+- **Result**: **53 / 53 Passed (0 Failed, 0 Skipped)** across 16 suites
   - `backend/tests/internships.test.js`: 27 passed (Health 200 & 503 DB failure, Root index, 404 handler, Read, Pagination & validation, Create, Update, Delete, Persistence)
-  - `backend/tests/applications.test.js`: 19 passed (Valid `201`, Optional cover letter, Duplicate & case-insensitive `409`, Cross-role `201`, Missing `internshipId` `400`, Unknown role `404`, Missing name `400`, Invalid email `400`, Oversized cover letter `400`, Unsupported props `400`, Helmet headers, CORS allowlist, SQLi immunity, Public PII leak check, Rate limit `429` + headers, Unthrottled `GET /api/internships`, Logger PII redaction, Persistence)
+  - `backend/tests/applications.test.js`: 21 passed (Valid `201`, Optional cover letter, Unsafe/safe `portfolioUrl`, Duplicate & case-insensitive `409`, Cross-role `201`, Missing `internshipId` `400`, Unknown role `404`, Missing name `400`, Invalid email `400`, Oversized cover letter `400`, Unsupported props `400`, Helmet headers, CORS allowlist, SQLi immunity, Public PII leak check, Rate limit `429` + headers, Unthrottled `GET /api/internships`, Logger PII redaction, Persistence)
+  - `backend/tests/postgres.test.js`: 5 passed (Strict production `DATABASE_URL` guard, SSL pool config, Idempotent PG seed & CRUD with JSONB/FK constraints, PG SQLSTATE `23505`/`23503`/`22P02` error mapping, Legacy read-only SQLite migration compatibility)
 
 ### Frontend Unit & Environment Suite (`node --test tests/frontend.test.mjs`)
 - **Runner**: Node.js built-in test runner (`node --test tests/frontend.test.mjs`)
-- **Result after Task-4 portfolio URL validation update**: **17 / 17 Passed (0 Failed, 0 Skipped)** across 7 suites (verified locally during this revision).
+- **Result**: **18 / 18 Passed (0 Failed, 0 Skipped)** across 7 suites
   - GitHub Pages host detection & `null` API base URL without override
   - Repository-relative static JSON resolution under `/` (with/without trailing slash)
   - Localhost API routing (`http://localhost:5000/api` / `/api`) and `window.__API_BASE_URL__` override

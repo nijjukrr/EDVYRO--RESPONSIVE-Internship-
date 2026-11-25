@@ -15,11 +15,12 @@ This backend provides a complete REST API for managing internship records. It pe
 
 - **Runtime**: Node.js (`>=18.0.0`)
 - **Web Framework**: Express.js (`^4.21.2`)
-- **Database Engine**: SQLite 3 (persistent file-based storage)
-- **Database Driver**: `better-sqlite3` (`^11.8.1`, synchronous, parameterized queries)
+- **Database Engines**:
+  - Local / CI: SQLite 3 via `better-sqlite3` (`^11.8.1`)
+  - Production (Neon): PostgreSQL via `pg` (`^8.23.1`) connection pool (`DATABASE_URL`)
 - **Security Middleware**: `helmet` (`^8.3.0`) for HTTP response header hardening
 - **Rate Limiting**: `express-rate-limit` (`^8.7.5`) for DDoS/spam mitigation on submissions
-- **CORS Support**: Deliberate origin allowlist middleware in `src/app.js`
+- **CORS Support**: Deliberate origin allowlist middleware in `src/app.js` (`https://nijjukrr.github.io` + `CORS_ORIGINS`)
 - **Environment Management**: `dotenv` (`^16.4.7`)
 - **Testing Framework**: Node.js built-in test runner (`node:test`, `node:assert/strict`) with `supertest` (`^7.0.0`)
 
@@ -569,12 +570,12 @@ Response (`400 Bad Request`):
 ## 11. Actual Test Results
 
 Automated test verification executed via Node.js native test runner (`node --test tests/**/*.test.js`):
-- **Total Test Suites**: 11
-- **Total Tests**: 46
-- **Passed**: 46
+- **Total Test Suites**: 16
+- **Total Tests**: 53
+- **Passed**: 53
 - **Failed**: 0
 - **Skipped**: 0
-- **Duration**: ~672ms
+- **Duration**: ~615ms
 
 ### Breakdown of Verified Test Suites
 
@@ -615,11 +616,15 @@ Automated test verification executed via Node.js native test runner (`node --tes
 
 ---
 
-## 12. Deployment & Runtime Environment Notes
+## 12. Deployment, Migration & Runtime Environment Notes
 
-- **Backend Runtime**: Node.js / Express listening locally on port `5000` (`http://localhost:5000/api`).
-- **Database**: Local file-based SQLite database (`backend/database/internships.db`), excluded from git tracking to prevent leaking local runtime state.
+- **Dual Database Mode (`src/config/database.js`)**:
+  - **Local / Tests**: Uses SQLite (`better-sqlite3`, `DATABASE_PATH=./database/internships.db`) when `DATABASE_URL` is unset.
+  - **Production (`NODE_ENV=production`)**: Strictly requires `DATABASE_URL` (Neon PostgreSQL pooled connection string) and refuses to silently fall back to SQLite.
+- **SQLite to Neon Migration**:
+  - `npm run migrate:postgres`: Non-destructive transactional migration opening SQLite in read-only mode (`../DATABASE-MIGRATION.md`).
+  - `npm run verify:migration`: Read-only verification comparing source/target counts, IDs, and foreign-key integrity without printing student PII.
+- **Render Blueprint**: Configured via root `../render.yaml` (`internboard-api`, free plan, `rootDir: backend`, `healthCheckPath: /api/health`).
 - **Frontend Integration**:
-  - The static frontend on GitHub Pages ([Live Demo](https://nijjukrr.github.io/EDVYRO--RESPONSIVE-Internship-/)) detects `nijjukrr.github.io` and loads verified records directly from `/EDVYRO--RESPONSIVE-Internship-/data/internships.json` without triggering failing API requests or false submission receipts.
-  - When the backend is running locally at `http://localhost:5000`, the local frontend communicates directly with the Express REST API (`GET /api/internships` and `POST /api/applications`).
-  - The API endpoint can be customized via `window.__API_BASE_URL__` or `localStorage.getItem('INTERNBOARD_API_URL')`.
+  - GitHub Pages connects to the deployed Render API URL when configured via `<meta name="internboard-api-url">`, `DEFAULT_PRODUCTION_API_URL`, `window.__API_BASE_URL__`, or `localStorage.getItem('INTERNBOARD_API_URL')`.
+  - When no backend API URL is configured on static hosting, listings load cleanly from `data/internships.json`.

@@ -48,10 +48,12 @@ Students seeking early-career internships often encounter cluttered job boards t
 
 - **Frontend**: Semantic HTML5, CSS3 (Purple/Indigo & White CSS custom properties, CSS Grid, Flexbox), Vanilla JavaScript ES6+ modules (`createElement`/`textContent` XSS safety)
 - **Backend**: Node.js (`>=18.0.0`), `express` (`^4.21.2`), `dotenv` (`^16.4.7`)
-- **Database**: SQLite 3 via `better-sqlite3` (`^11.8.1`)
-- **Security**: `helmet` (`^8.3.0`), `express-rate-limit` (`^8.7.5`), deliberate origin allowlist CORS
+- **Database**:
+  - Local Development & Automated Tests: SQLite 3 via `better-sqlite3` (`^11.8.1`)
+  - Production (Neon PostgreSQL Free Tier): PostgreSQL via `pg` (`^8.23.1`) connection pool (`DATABASE_URL`)
+- **Security**: `helmet` (`^8.3.0`), `express-rate-limit` (`^8.7.5`), deliberate origin allowlist CORS (`https://nijjukrr.github.io` + `CORS_ORIGINS`)
 - **Testing**: Node.js built-in test runner (`node:test`, `node:assert/strict`) + `supertest` (`^7.0.0`)
-- **Hosting**: GitHub Pages (`/` static frontend) & Local Node.js Express API
+- **Hosting & CI**: GitHub Pages (static frontend) → Render Free Web Service (Express API via [`render.yaml`](./render.yaml)) → Neon PostgreSQL; GitHub Actions CI ([`.github/workflows/ci.yml`](./.github/workflows/ci.yml))
 
 *(Strictly zero frontend frameworks: No React, Vue, Angular, Next.js, Bootstrap, or Tailwind CSS.)*
 
@@ -775,9 +777,9 @@ Duplicate submission attempt returns HTTP `409 Conflict`:
 ## 10. Automated Test Verification & Capstone Evidence
 
 Automated test suites executed via Node.js native test runner:
-- **Backend Suite** (`cd backend; npm test`): **46 / 46 passing (100%)** across 11 suites (`internships.test.js` + `applications.test.js`).
-- **Frontend Unit Suite** (`node --test tests/frontend.test.mjs`): **16 / 16 passing (100%)** across 7 suites.
-- **Total Automated Tests**: **62 / 62 passing (0 failures, 0 skipped)**.
+- **Backend Suite** (`cd backend; npm test`): **53 / 53 passing (100%)** across 16 suites (`internships.test.js`, `applications.test.js`, `postgres.test.js`).
+- **Frontend Unit Suite** (`node --test tests/frontend.test.mjs`): **18 / 18 passing (100%)** across 7 suites.
+- **Total Automated Tests**: **71 / 71 passing (0 failures, 0 skipped)**.
 
 ### Verified Scenarios Summary
 
@@ -786,11 +788,12 @@ Automated test suites executed via Node.js native test runner:
 | **API Health (`200` / `503`) & Metadata** | `backend/tests/internships.test.js` | 4 | Pass (100%) |
 | **Internship Listings (GET & Pagination)** | `backend/tests/internships.test.js` | 8 | Pass (100%) |
 | **Internship Create, Update, Delete & Persistence** | `backend/tests/internships.test.js` | 15 | Pass (100%) |
-| **Application Submission & Validation** | `backend/tests/applications.test.js` | 11 | Pass (100%) |
+| **Application Submission, Portfolio URL & Validation** | `backend/tests/applications.test.js` | 13 | Pass (100%) |
 | **Security Headers, CORS, SQLi, Privacy, 429, Logging** | `backend/tests/applications.test.js` | 7 | Pass (100%) |
 | **Application Persistence (Task 4)** | `backend/tests/applications.test.js` | 1 | Pass (100%) |
-| **Frontend Routing, Purple/White CSS, Filters & Validation** | `tests/frontend.test.mjs` | 16 | Pass (100%) |
-| **TOTAL** | **All Automated Suites** | **62** | **62 / 62 (100%)** |
+| **PostgreSQL Mode, CRUD, Error Mapping & Migration Safety** | `backend/tests/postgres.test.js` | 5 | Pass (100%) |
+| **Frontend Routing, Purple/White CSS, Config & Validation** | `tests/frontend.test.mjs` | 18 | Pass (100%) |
+| **TOTAL** | **All Automated Suites** | **71** | **71 / 71 (100%)** |
 
 ### Production-Readiness Evidence (`docs/evidence/`)
 - **Security Checklist**: [`docs/evidence/SECURITY_CHECKLIST.md`](./docs/evidence/SECURITY_CHECKLIST.md)
@@ -841,10 +844,13 @@ node --test tests/frontend.test.mjs
 
 ## 12. Deployment & Runtime Notes
 
-1. **Public GitHub Pages Mode**:
-   - Live Portal: [https://nijjukrr.github.io/EDVYRO--RESPONSIVE-Internship-/](https://nijjukrr.github.io/EDVYRO--RESPONSIVE-Internship-/)
-   - Hosts static frontend assets directly from `main`. Because GitHub Pages cannot run Node.js or SQLite, the portal loads verified records from `/EDVYRO--RESPONSIVE-Internship-/data/internships.json` and displays an honest Static Demo Mode notice if a user attempts to submit an application without a running backend.
+1. **Public GitHub Pages + Render + Neon Architecture (Stage 2)**:
+   - Live Frontend: [https://nijjukrr.github.io/EDVYRO--RESPONSIVE-Internship-/](https://nijjukrr.github.io/EDVYRO--RESPONSIVE-Internship-/)
+   - Stage 2 Deployment Guide: [`STAGE-2-DEPLOYMENT.md`](./STAGE-2-DEPLOYMENT.md)
+   - SQLite-to-Neon Migration Guide: [`DATABASE-MIGRATION.md`](./DATABASE-MIGRATION.md)
+   - Render Blueprint: [`render.yaml`](./render.yaml)
+   - Static frontend assets deploy from `main`; setting `<meta name="internboard-api-url">` (or `DEFAULT_PRODUCTION_API_URL` in `js/config.js`) connects GitHub Pages directly to the deployed Render Express API + Neon PostgreSQL database without exposing database credentials.
 2. **Local Full-Stack Mode**:
-   - Running the backend locally on port `5000` and the frontend on port `8080` enables full API integration, application submission, SQLite persistence, privacy-safe operational logging, rate limiting, and Helmet protection.
+   - Running the backend locally without `DATABASE_URL` uses SQLite (`backend/database/internships.db`) for zero-setup development and tests. Setting `DATABASE_URL` connects directly to PostgreSQL.
    - All runtime SQLite files (`*.db`, `*.db-wal`, `*.db-shm`), `.env`, and `node_modules` are excluded via `.gitignore`.
 

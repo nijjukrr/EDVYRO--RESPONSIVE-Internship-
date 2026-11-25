@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 jobs:
-  frontend-tests:
+  syntax-and-frontend:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -16,7 +16,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Run frontend tests
+      - name: Validate syntax across frontend and backend modules
+        run: |
+          for f in js/*.js backend/src/**/*.js backend/database/*.js backend/scripts/*.js; do
+            node --check "$f"
+          done
+      - name: Run frontend unit and build integrity tests
         run: node --test tests/frontend.test.mjs
 
   backend-tests:
@@ -33,6 +38,6 @@ jobs:
       - name: Install backend dependencies
         working-directory: backend
         run: npm ci
-      - name: Run backend tests
+      - name: Run backend SQLite, PostgreSQL & security tests
         working-directory: backend
         run: npm test
